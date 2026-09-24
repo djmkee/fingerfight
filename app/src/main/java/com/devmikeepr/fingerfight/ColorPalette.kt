@@ -7,10 +7,13 @@ object ColorPalette {
         0xFF43A047.toInt(), // Player 3 - Green
         0xFFFDD835.toInt(), // Player 4 - Amber
         0xFF8E24AA.toInt(), // Player 5 - Purple
-        0xFFFB8C00.toInt()  // Player 6 - Orange
+        0xFFFB8C00.toInt(), // Player 6 - Orange
+        0xFF00ACC1.toInt(), // Player 7 - Teal
+        0xFFD81B60.toInt()  // Player 8 - Pink
     )
 
-    const val HUNTER_COLOR = 0xFFFF1744.toInt()
+    const val WINNER_COLOR = 0xFF00E676.toInt()
+    const val DIM_COLOR = 0xFF3A3A50.toInt()
 
     fun colorFor(slotIndex: Int): Int = PLAYER_COLORS[slotIndex % PLAYER_COLORS.size]
 }

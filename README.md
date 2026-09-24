@@ -3,22 +3,28 @@
 A local same-screen multiplayer party game for Android, evolved from the
 original Finger Fight concept.
 
+An earlier version of this app included a "Chase Duel" mode where one
+player's finger had to physically chase and touch the others on screen.
+Real playtesting showed the obvious problem: on a phone-sized screen,
+fingers and hands just collide. It's been replaced with the Finger Picker
+modes below, which reuse the same "everyone touches the screen at once"
+idea without requiring anyone to move.
+
 ## Modes
 
-- **Chase Duel** (2–6 players): everyone places a finger on screen. After a
-  hidden random delay, one player is secretly picked as the Hunter and must
-  tag the others before the round timer runs out. Lifting your finger early
-  is an instant elimination — even for the Hunter.
 - **Reaction Duel** (2 players): hold a finger on your half of the screen.
   When the screen flashes "GO!", the first to lift wins the point. Lifting
-  early is a false start and an automatic loss.
-
-## Championships
-
-Matches can be played as a single Quick round or as a Best of 3/5/7
-championship. Points carry over between rounds and a live leaderboard is
-shown after each one; whoever has the most points when the match ends is
-crowned Champion (ties become co-champions).
+  early is a false start and an automatic loss. Played as a Quick round or
+  a Best of 3/5/7 championship with a running scoreboard.
+- **Finger Picker — Single Pick**: everyone places a finger anywhere on
+  screen — no need to set a player count first. Once fingers stop arriving,
+  the app spins through everyone and lands on one at random. Pick a purpose
+  before you start: Who Pays, Who's It, Goes First, Truth or Dare, or your
+  own custom text.
+- **Finger Picker — Full Order**: the same mechanic, but instead of
+  stopping after one pick it keeps going until every finger has a rank —
+  useful for turn order, team drafts, chore rotations, or anything else
+  that needs a random order decided on the spot.
 
 ## Project layout
 
@@ -27,11 +33,16 @@ This is a standard Gradle/Android Studio project:
 - `app/` — the Android app module (Kotlin, View-based UI, no third-party
   game engine).
 - `app/src/main/java/com/devmikeepr/fingerfight/` — game logic:
-  - `ChaseArenaView` / `ReactionArenaView` — the multitouch game engines
-    (custom `View`s handling raw `MotionEvent`s, collision detection,
-    timers and animations).
-  - `GameActivity` — round flow, scoring and the championship leaderboard.
-  - `MainActivity`, `SetupActivity`, `HowToPlayActivity` — menu screens.
+  - `ReactionArenaView` — the Reaction Duel engine (custom `View` handling
+    raw `MotionEvent`s, timers and false-start detection).
+  - `PickerArenaView` — the Finger Picker engine shared by Single Pick and
+    Full Order (dynamic headcount, lock-in grace period, decelerating spin
+    animation, repeat-until-ranked elimination).
+  - `GameActivity` — Reaction Duel round flow, scoring and the
+    championship leaderboard.
+  - `PickerActivity` / `PickerSetupActivity` — Finger Picker setup and
+    reveal/ranking screen.
+  - `MainActivity`, `HowToPlayActivity` — menu screens.
 - `app/src/main/res/raw/` — short synthesized sound effects (no external
   assets).
 
@@ -51,6 +62,11 @@ be verified in the sandbox this was written in (no access to
 on it. The Kotlin game-logic classes (the arena views, models and sound
 manager) were type-checked against real Android framework classes during
 development.
+
+Playtest note: Reaction Duel works with the emulator's mouse pointer (one
+finger). The Finger Picker modes need genuine multitouch to test properly —
+use a real device, or the emulator's Ctrl-drag two-finger gesture for a
+2-finger sanity check.
 
 ## Privacy
 

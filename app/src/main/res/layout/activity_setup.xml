@@ -15,83 +15,18 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/setup_choose_mode"
+            android:text="@string/setup_reaction_title"
             android:textColor="@color/text_primary"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold" />
-
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggle_mode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:singleSelection="true"
-            app:selectionRequired="true">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_mode_chase"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/mode_chase" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_mode_reaction"
-                style="?attr/materialButtonOutlinedStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/mode_reaction" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <TextView
-            android:id="@+id/label_players"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/setup_players"
-            android:textColor="@color/text_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/row_players"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_players_minus"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text="–"
-                android:textSize="22sp" />
-
-            <TextView
-                android:id="@+id/text_player_count"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="4"
-                android:textColor="@color/text_primary"
-                android:textSize="28sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_players_plus"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text="+"
-                android:textSize="22sp" />
-        </LinearLayout>
+            android:layout_marginTop="4dp"
+            android:text="@string/setup_reaction_subtitle"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
 
         <TextView
             android:layout_width="wrap_content"

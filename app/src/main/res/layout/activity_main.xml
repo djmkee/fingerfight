@@ -19,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.28" />
+        app:layout_constraintVertical_bias="0.16" />
 
     <TextView
         android:id="@+id/text_tagline"
@@ -37,7 +37,7 @@
         android:id="@+id/btn_play"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="36dp"
         android:text="@string/action_play"
         android:textSize="18sp"
         app:backgroundTint="@color/accent"
@@ -46,15 +46,27 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_picker"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="12dp"
+        android:text="@string/action_picker"
+        android:textSize="18sp"
+        app:backgroundTint="@color/surface_light"
+        app:layout_constraintTop_toBottomOf="@id/btn_play"
+        app:layout_constraintStart_toStartOf="@id/btn_play"
+        app:layout_constraintEnd_toEndOf="@id/btn_play" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_how_to_play"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:text="@string/action_how_to_play"
         app:strokeColor="@color/accent"
         android:textColor="@color/accent"
-        app:layout_constraintTop_toBottomOf="@id/btn_play"
+        app:layout_constraintTop_toBottomOf="@id/btn_picker"
         app:layout_constraintStart_toStartOf="@id/btn_play"
         app:layout_constraintEnd_toEndOf="@id/btn_play" />
 

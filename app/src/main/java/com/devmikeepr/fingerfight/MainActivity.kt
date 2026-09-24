@@ -15,6 +15,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btn_play).setOnClickListener {
             startActivity(Intent(this, SetupActivity::class.java))
         }
+        findViewById<MaterialButton>(R.id.btn_picker).setOnClickListener {
+            startActivity(Intent(this, PickerSetupActivity::class.java))
+        }
         findViewById<MaterialButton>(R.id.btn_how_to_play).setOnClickListener {
             startActivity(Intent(this, HowToPlayActivity::class.java))
         }

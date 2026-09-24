@@ -14,10 +14,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.android.material.button.MaterialButton
 
+/**
+ * Hosts a Reaction Duel championship: a fixed 2-player duel played over
+ * a configurable number of rounds with a running scoreboard.
+ */
 class GameActivity : AppCompatActivity(), ArenaListener {
 
-    private lateinit var mode: GameMode
-    private var playerCount = 2
     private var totalRounds = 1
     private var currentRound = 1
 
@@ -41,10 +43,8 @@ class GameActivity : AppCompatActivity(), ArenaListener {
         hideSystemBars()
         setContentView(R.layout.activity_game)
 
-        mode = GameMode.valueOf(intent.getStringExtra(EXTRA_MODE) ?: GameMode.CHASE.name)
-        playerCount = intent.getIntExtra(EXTRA_PLAYER_COUNT, mode.minPlayers)
         totalRounds = intent.getIntExtra(EXTRA_TOTAL_ROUNDS, 1)
-        playerSlots = List(playerCount) { PlayerSlot(it, ColorPalette.colorFor(it)) }
+        playerSlots = List(PLAYER_COUNT) { PlayerSlot(it, ColorPalette.colorFor(it)) }
 
         soundManager = SoundManager(this)
 
@@ -94,11 +94,7 @@ class GameActivity : AppCompatActivity(), ArenaListener {
             arenaContainer.removeView(it)
         }
 
-        val newArena: BaseArenaView = if (mode == GameMode.CHASE) {
-            ChaseArenaView(this, playerCount)
-        } else {
-            ReactionArenaView(this)
-        }
+        val newArena = ReactionArenaView(this)
         newArena.listener = this
         newArena.soundManager = soundManager
         arenaView = newArena
@@ -202,8 +198,7 @@ class GameActivity : AppCompatActivity(), ArenaListener {
     }
 
     companion object {
-        const val EXTRA_MODE = "extra_mode"
-        const val EXTRA_PLAYER_COUNT = "extra_player_count"
         const val EXTRA_TOTAL_ROUNDS = "extra_total_rounds"
+        private const val PLAYER_COUNT = 2
     }
 }
