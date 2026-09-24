@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Finger Fight: Arena</string>
+    <string name="tagline">One touch. One winner.</string>
+
+    <string name="action_play">Play</string>
+    <string name="action_how_to_play">How to Play</string>
+    <string name="action_sound">Sound</string>
+    <string name="action_haptics">Vibration</string>
+    <string name="action_start_match">Start Match</string>
+    <string name="action_got_it">Got It</string>
+    <string name="action_quit">Quit</string>
+    <string name="action_quit_confirm">Quit this match? Your progress will be lost.</string>
+    <string name="action_main_menu">Main Menu</string>
+    <string name="action_play_again">Play Again</string>
+    <string name="action_next_round">Next Round</string>
+    <string name="action_see_champion">See Champion</string>
+
+    <string name="setup_choose_mode">Choose a Mode</string>
+    <string name="mode_chase">Chase Duel</string>
+    <string name="mode_reaction">Reaction Duel</string>
+    <string name="setup_players">Players</string>
+    <string name="setup_rounds">Match Length</string>
+    <string name="rounds_quick">Quick (1)</string>
+    <string name="rounds_bo3">Best of 3</string>
+    <string name="rounds_bo5">Best of 5</string>
+    <string name="rounds_bo7">Best of 7</string>
+
+    <string name="hud_round_format">Round %1$d / %2$d</string>
+    <string name="lobby_chase_format">Place %1$d fingers on screen (%2$d / %3$d ready)</string>
+    <string name="lobby_reaction">Both players place a finger on your half of the screen</string>
+    <string name="countdown_message">Hold steady…</string>
+    <string name="hunter_revealed_format">Player %1$d is the Hunter!</string>
+    <string name="early_lift_format">Player %1$d lifted early! Resetting…</string>
+    <string name="go_message">GO!</string>
+
+    <string name="result_final_title">Champion!</string>
+    <string name="result_round_title_format">Round %1$d Results</string>
+    <string name="leaderboard_row_format">Player %1$d — %2$d pts</string>
+    <string name="champion_row_format">🏆 Player %1$d wins the championship!</string>
+    <string name="co_champion_row_format">🏆 Players %1$s tie as co-champions!</string>
+
+    <string name="how_to_play_title">How to Play</string>
+    <string name="how_to_play_text"><![CDATA[
+CHASE DUEL (2–6 players)
+1. Each player places one finger anywhere on screen.
+2. Once everyone is down, hold steady — after a random delay, one random player is secretly picked as the HUNTER and their circle turns red.
+3. The Hunter must chase and touch the other players\' circles to tag them out.
+4. Everyone else must dodge without lifting their finger — lifting early is an instant elimination!
+5. If the Hunter tags everyone before time runs out, the Hunter wins the round. If the timer expires first, every surviving player wins. If the Hunter lifts their own finger, the Hunter forfeits the round.
+
+SCORING: The Hunter earns 2 points for a full clear. Each surviving player earns 1 point when the Hunter runs out of time or forfeits.
+
+REACTION DUEL (2 players)
+1. Player 1 holds a finger on the left half, Player 2 on the right half.
+2. After a random delay, the screen flashes "GO!" — the first player to lift their finger wins the point.
+3. Lifting before "GO!" is a false start and an automatic loss of the round.
+
+CHAMPIONSHIP
+Play a set number of rounds (Quick, Best of 3/5/7). Points carry over between rounds. Whoever has the most points when the match ends is crowned Champion. Ties are shared as co-champions.
+    ]]></string>
+</resources>

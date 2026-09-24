@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_dark">#0F0F1A</color>
+    <color name="surface_dark">#1C1C2E</color>
+    <color name="surface_light">#2A2A42</color>
+    <color name="accent">#00E5FF</color>
+    <color name="accent_dark">#00B8CC</color>
+    <color name="danger">#FF1744</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0C8</color>
+
+    <color name="player_1">#E53935</color>
+    <color name="player_2">#1E88E5</color>
+    <color name="player_3">#43A047</color>
+    <color name="player_4">#FDD835</color>
+    <color name="player_5">#8E24AA</color>
+    <color name="player_6">#FB8C00</color>
+</resources>
