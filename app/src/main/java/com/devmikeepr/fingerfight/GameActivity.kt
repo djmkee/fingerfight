@@ -12,14 +12,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.google.android.gms.ads.AdView
 import com.google.android.material.button.MaterialButton
 
 /**
- * Hosts a Reaction Duel championship: a fixed 2-player duel played over
+ * Hosts a duel championship (Reaction, Tap Battle, or Endurance): played over
  * a configurable number of rounds with a running scoreboard.
  */
 class GameActivity : AppCompatActivity(), ArenaListener {
 
+    private lateinit var mode: DuelMode
+    private var playerCount = 2
     private var totalRounds = 1
     private var currentRound = 1
 
@@ -44,8 +47,10 @@ class GameActivity : AppCompatActivity(), ArenaListener {
         hideSystemBars()
         setContentView(R.layout.activity_game)
 
+        mode = DuelMode.valueOf(intent.getStringExtra(EXTRA_DUEL_MODE) ?: DuelMode.REACTION.name)
+        playerCount = intent.getIntExtra(EXTRA_PLAYER_COUNT, mode.minPlayers)
         totalRounds = intent.getIntExtra(EXTRA_TOTAL_ROUNDS, 1)
-        playerSlots = List(PLAYER_COUNT) { PlayerSlot(it, ColorPalette.colorFor(it)) }
+        playerSlots = List(playerCount) { PlayerSlot(it, ColorPalette.colorFor(it)) }
 
         soundManager = SoundManager(this)
 
@@ -70,6 +75,8 @@ class GameActivity : AppCompatActivity(), ArenaListener {
                 confirmQuit()
             }
         })
+
+        findViewById<AdView>(R.id.ad_view).loadStandardAd()
 
         startNewRound()
     }
@@ -96,7 +103,11 @@ class GameActivity : AppCompatActivity(), ArenaListener {
             arenaContainer.removeView(it)
         }
 
-        val newArena = ReactionArenaView(this)
+        val newArena: BaseArenaView = when (mode) {
+            DuelMode.REACTION -> ReactionArenaView(this)
+            DuelMode.TAP_BATTLE -> TapBattleArenaView(this)
+            DuelMode.ENDURANCE -> EnduranceArenaView(this, playerCount)
+        }
         newArena.listener = this
         newArena.soundManager = soundManager
         arenaView = newArena
@@ -210,7 +221,8 @@ class GameActivity : AppCompatActivity(), ArenaListener {
     }
 
     companion object {
+        const val EXTRA_DUEL_MODE = "extra_duel_mode"
+        const val EXTRA_PLAYER_COUNT = "extra_player_count"
         const val EXTRA_TOTAL_ROUNDS = "extra_total_rounds"
-        private const val PLAYER_COUNT = 2
     }
 }

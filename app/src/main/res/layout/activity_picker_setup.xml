@@ -9,9 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true">
 
     <LinearLayout
@@ -50,6 +56,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:textSize="12sp"
                 android:text="@string/pick_type_single" />
 
             <com.google.android.material.button.MaterialButton
@@ -58,7 +65,17 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:textSize="12sp"
                 android:text="@string/pick_type_order" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_pick_team_split"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:text="@string/pick_type_team_split" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <LinearLayout
@@ -141,7 +158,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/section_order"
+            android:id="@+id/section_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
@@ -188,7 +205,7 @@
                 android:layout_marginTop="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edit_order_title"
+                    android:id="@+id/edit_list_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/order_preset_turn" />
@@ -206,4 +223,7 @@
 
     </LinearLayout>
     </ScrollView>
+
+        <include layout="@layout/include_ad_banner" />
+    </LinearLayout>
 </FrameLayout>

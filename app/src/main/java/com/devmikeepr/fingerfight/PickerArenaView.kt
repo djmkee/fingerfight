@@ -6,14 +6,17 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
+import kotlin.random.Random
 
 private enum class PickerPhase { LOBBY, SPINNING, REVEALED, DONE }
 
 /**
- * Shared engine for the two "party decision" modes:
+ * Shared engine for the three "party decision" modes:
  *  - single pick: everyone places a finger, one is randomly chosen, done.
- *  - elimination order (a.k.a. "Full Order"): repeatedly picks one finger at
- *    a time until every finger held down at lock-in has been given a rank.
+ *  - full order: repeatedly picks one finger at a time until every finger
+ *    held down at lock-in has been given a rank.
+ *  - team split: everyone placed a finger gets randomly, evenly divided
+ *    into two teams.
  *
  * Unlike the duel arenas, headcount isn't configured ahead of time — it's
  * simply "however many fingers are on the screen when the grace period
@@ -22,7 +25,7 @@ private enum class PickerPhase { LOBBY, SPINNING, REVEALED, DONE }
  */
 class PickerArenaView(
     context: Context,
-    private val eliminationMode: Boolean
+    private val mode: PickType
 ) : BaseArenaView(context) {
 
     private class Touch(var x: Float, var y: Float)
@@ -36,6 +39,8 @@ class PickerArenaView(
     private var phase = PickerPhase.LOBBY
     private var highlightedParticipant = -1
     private var winnerParticipant = -1
+    private val teamAssignment = mutableMapOf<Int, Int>()
+    private val flickerTeam = mutableMapOf<Int, Int>()
 
     private var lockInRunnable: Runnable? = null
     private var spinStepRunnable: Runnable? = null
@@ -53,6 +58,8 @@ class PickerArenaView(
         cleanup()
         pointerToParticipant.clear()
         activeTouches.clear()
+        teamAssignment.clear()
+        flickerTeam.clear()
         nextParticipantNumber = 1
         phase = PickerPhase.LOBBY
         highlightedParticipant = -1
@@ -123,15 +130,19 @@ class PickerArenaView(
     private fun scheduleLockIn() {
         lockInRunnable?.let { handler.removeCallbacks(it) }
         if (activeTouches.size < 2) return
-        val runnable = Runnable { beginSpin() }
+        val runnable = Runnable { beginPick() }
         lockInRunnable = runnable
         handler.postDelayed(runnable, LOCK_IN_DELAY_MS)
     }
 
-    private fun beginSpin() {
+    private fun beginPick() {
         if (phase != PickerPhase.LOBBY || activeTouches.size < 2) return
         phase = PickerPhase.SPINNING
-        runSpin(activeTouches.keys.toList())
+        if (mode == PickType.TEAM_SPLIT) {
+            beginTeamSplit()
+        } else {
+            runSpin(activeTouches.keys.toList())
+        }
     }
 
     private fun runSpin(candidates: List<Int>) {
@@ -164,10 +175,10 @@ class PickerArenaView(
         winnerParticipant = winner
         activeTouches[winner]?.let { spawnConfettiBurst(it.x, it.y) }
         val remainingAfterThis = activeTouches.size - 1
-        val isFinal = !eliminationMode || remainingAfterThis <= 1
+        val isFinal = mode != PickType.ORDER || remainingAfterThis <= 1
         pickerListener?.onPickRevealed(winner, remainingAfterThis, isFinal)
 
-        if (!eliminationMode) {
+        if (mode != PickType.ORDER) {
             phase = PickerPhase.DONE
             pickerListener?.onAllDone()
             return
@@ -201,18 +212,58 @@ class PickerArenaView(
         invalidate()
     }
 
+    private fun beginTeamSplit() {
+        val participants = activeTouches.keys.shuffled()
+        val teamA = mutableListOf<Int>()
+        val teamB = mutableListOf<Int>()
+        participants.forEachIndexed { index, number ->
+            if (index % 2 == 0) teamA.add(number) else teamB.add(number)
+        }
+        teamAssignment.clear()
+        teamA.forEach { teamAssignment[it] = 0 }
+        teamB.forEach { teamAssignment[it] = 1 }
+
+        var stepsLeft = SPIN_STEPS
+
+        fun step() {
+            if (stepsLeft <= 0) {
+                phase = PickerPhase.REVEALED
+                soundManager?.playRoundWin()
+                spawnConfettiBurst(width / 2f, height / 2f)
+                pickerListener?.onTeamsAssigned(teamA, teamB)
+                phase = PickerPhase.DONE
+                pickerListener?.onAllDone()
+                invalidate()
+                return
+            }
+            for (number in participants) {
+                flickerTeam[number] = Random.nextInt(2)
+            }
+            invalidate()
+            stepsLeft--
+            val runnable = Runnable { step() }
+            spinStepRunnable = runnable
+            handler.postDelayed(runnable, TEAM_FLICKER_INTERVAL_MS)
+        }
+        step()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawRipples(canvas)
         for ((number, touch) in activeTouches) {
-            val isHighlighted = number == highlightedParticipant
-            val isWinner = phase != PickerPhase.SPINNING && number == winnerParticipant
             val color = when {
-                isWinner -> ColorPalette.WINNER_COLOR
-                phase == PickerPhase.SPINNING && !isHighlighted -> ColorPalette.DIM_COLOR
+                mode == PickType.TEAM_SPLIT && phase == PickerPhase.SPINNING ->
+                    ColorPalette.colorForTeam(flickerTeam[number] ?: 0)
+                mode == PickType.TEAM_SPLIT && phase != PickerPhase.LOBBY ->
+                    ColorPalette.colorForTeam(teamAssignment[number] ?: 0)
+                number == winnerParticipant && phase != PickerPhase.SPINNING -> ColorPalette.WINNER_COLOR
+                phase == PickerPhase.SPINNING && number != highlightedParticipant -> ColorPalette.DIM_COLOR
                 else -> ColorPalette.colorFor(number - 1)
             }
-            val radius = if (isHighlighted || isWinner) radiusPx * 1.2f else radiusPx
+            val isHighlighted = mode != PickType.TEAM_SPLIT &&
+                (number == highlightedParticipant || (number == winnerParticipant && phase != PickerPhase.SPINNING))
+            val radius = if (isHighlighted) radiusPx * 1.2f else radiusPx
             drawPlayerCircle(canvas, touch.x, touch.y, radius, color, number.toString())
         }
         drawConfetti(canvas)
@@ -224,5 +275,6 @@ class PickerArenaView(
         private const val SPIN_STEPS = 14
         private const val SPIN_START_DELAY_MS = 70L
         private const val SPIN_SLOWDOWN = 1.22
+        private const val TEAM_FLICKER_INTERVAL_MS = 90L
     }
 }

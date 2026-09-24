@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.google.android.gms.ads.AdView
 import com.google.android.material.button.MaterialButton
 
 class PickerActivity : AppCompatActivity(), PickerListener {
@@ -16,7 +17,7 @@ class PickerActivity : AppCompatActivity(), PickerListener {
     private lateinit var pickType: PickType
     private var purpose: PickerPurpose = PickerPurpose.WHO_PAYS
     private var customText: String = ""
-    private var orderTitle: String = ""
+    private var listTitle: String = ""
 
     private lateinit var soundManager: SoundManager
     private lateinit var arenaContainer: FrameLayout
@@ -38,7 +39,7 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         pickType = PickType.valueOf(intent.getStringExtra(EXTRA_PICK_TYPE) ?: PickType.SINGLE.name)
         purpose = PickerPurpose.valueOf(intent.getStringExtra(EXTRA_PURPOSE) ?: PickerPurpose.WHO_PAYS.name)
         customText = intent.getStringExtra(EXTRA_CUSTOM_TEXT) ?: getString(R.string.picker_custom_default)
-        orderTitle = intent.getStringExtra(EXTRA_ORDER_TITLE) ?: getString(R.string.order_preset_turn)
+        listTitle = intent.getStringExtra(EXTRA_LIST_TITLE) ?: getString(R.string.order_preset_turn)
 
         soundManager = SoundManager(this)
 
@@ -51,10 +52,12 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         btnSpinAgain = findViewById(R.id.btn_spin_again)
         btnNewSetup = findViewById(R.id.btn_new_setup)
 
-        titleText.text = if (pickType == PickType.SINGLE) getString(purpose.labelRes) else orderTitle
+        titleText.text = if (pickType == PickType.SINGLE) getString(purpose.labelRes) else listTitle
         btnSpinAgain.visibility = View.GONE
         btnSpinAgain.setOnClickListener { startNewSpin() }
         btnNewSetup.setOnClickListener { finish() }
+
+        findViewById<AdView>(R.id.ad_view).loadStandardAd()
 
         startNewSpin()
     }
@@ -76,7 +79,7 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         btnSpinAgain.visibility = View.GONE
         instructionText.text = getString(R.string.picker_instruction)
 
-        val newArena = PickerArenaView(this, eliminationMode = pickType == PickType.ORDER)
+        val newArena = PickerArenaView(this, mode = pickType)
         newArena.pickerListener = this
         newArena.soundManager = soundManager
         arenaView = newArena
@@ -118,6 +121,35 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         }
     }
 
+    override fun onTeamsAssigned(teamA: List<Int>, teamB: List<Int>) {
+        runOnUiThread {
+            addTeamHeader(getString(R.string.team_a_label), ColorPalette.TEAM_A_COLOR)
+            teamA.forEach { addTeamRow(it) }
+            addTeamHeader(getString(R.string.team_b_label), ColorPalette.TEAM_B_COLOR)
+            teamB.forEach { addTeamRow(it) }
+        }
+    }
+
+    private fun addTeamHeader(label: String, color: Int) {
+        val header = TextView(this).apply {
+            text = label
+            setTextColor(color)
+            textSize = 16f
+            setPadding(0, 12, 0, 4)
+        }
+        orderListContainer.addView(header)
+    }
+
+    private fun addTeamRow(participantNumber: Int) {
+        val row = TextView(this).apply {
+            text = getString(R.string.team_member_format, participantNumber)
+            setTextColor(ColorPalette.colorFor(participantNumber - 1))
+            textSize = 18f
+            setPadding(16, 4, 0, 4)
+        }
+        orderListContainer.addView(row)
+    }
+
     private fun buildSingleResultText(participantNumber: Int): String {
         return if (purpose == PickerPurpose.CUSTOM) {
             getString(R.string.purpose_custom_result_format, participantNumber, customText)
@@ -131,6 +163,8 @@ class PickerActivity : AppCompatActivity(), PickerListener {
             btnSpinAgain.visibility = View.VISIBLE
             if (pickType == PickType.ORDER) {
                 instructionText.text = getString(R.string.picker_order_done)
+            } else if (pickType == PickType.TEAM_SPLIT) {
+                instructionText.text = ""
             }
         }
     }
@@ -155,6 +189,6 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         const val EXTRA_PICK_TYPE = "extra_pick_type"
         const val EXTRA_PURPOSE = "extra_purpose"
         const val EXTRA_CUSTOM_TEXT = "extra_custom_text"
-        const val EXTRA_ORDER_TITLE = "extra_order_title"
+        const val EXTRA_LIST_TITLE = "extra_list_title"
     }
 }

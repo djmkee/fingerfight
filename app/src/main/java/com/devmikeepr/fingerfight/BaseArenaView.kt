@@ -1,5 +1,8 @@
 package com.devmikeepr.fingerfight
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -44,6 +47,18 @@ abstract class BaseArenaView(context: Context) : View(context) {
         textAlign = Paint.Align.CENTER
         typeface = Typeface.DEFAULT_BOLD
         setShadowLayer(dp(12f), 0f, 0f, 0xAA00E5FF.toInt())
+    }
+
+    private val subLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.DEFAULT_BOLD
+    }
+
+    protected fun drawSubLabel(canvas: Canvas, cx: Float, cy: Float, text: String, textSizePx: Float, alpha: Float = 1f) {
+        subLabelPaint.textSize = textSizePx
+        subLabelPaint.alpha = (255 * alpha).toInt().coerceIn(0, 255)
+        canvas.drawText(text, cx, cy, subLabelPaint)
     }
 
     protected fun drawPlayerCircle(
@@ -150,6 +165,43 @@ abstract class BaseArenaView(context: Context) : View(context) {
             canvas.drawRect(c.x - dp(3f), c.y - dp(3f), c.x + dp(3f), c.y + dp(3f), confettiPaint)
         }
         invalidate()
+    }
+
+    // ---- Shrink-and-fade elimination effect (shared by any mode that knocks
+    // players out one at a time) ----
+
+    private val eliminationProgress = mutableMapOf<Int, Float>()
+    private val eliminationAnimators = mutableMapOf<Int, ValueAnimator>()
+
+    protected fun spawnEliminationFade(slot: Int, onComplete: () -> Unit) {
+        eliminationAnimators[slot]?.cancel()
+        eliminationProgress[slot] = 1f
+        val animator = ValueAnimator.ofFloat(1f, 0f).apply {
+            duration = 300
+            addUpdateListener {
+                eliminationProgress[slot] = it.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    eliminationProgress.remove(slot)
+                    eliminationAnimators.remove(slot)
+                    onComplete()
+                }
+            })
+            start()
+        }
+        eliminationAnimators[slot] = animator
+    }
+
+    protected fun eliminationAlpha(slot: Int): Float = eliminationProgress[slot] ?: 1f
+
+    protected fun isFadingOut(slot: Int): Boolean = eliminationProgress.containsKey(slot)
+
+    protected fun cancelEliminationFades() {
+        eliminationAnimators.values.forEach { it.cancel() }
+        eliminationAnimators.clear()
+        eliminationProgress.clear()
     }
 
     abstract fun startRound()

@@ -11,6 +11,9 @@ interface PickerListener {
      */
     fun onPickRevealed(participantNumber: Int, remaining: Int, isFinalPick: Boolean)
 
-    /** Called once the whole pick (single winner, or full order) is finished. */
+    /** Called once, in team-split mode, when the two teams have been decided. */
+    fun onTeamsAssigned(teamA: List<Int>, teamB: List<Int>)
+
+    /** Called once the whole pick (single winner, full order, or team split) is finished. */
     fun onAllDone()
 }

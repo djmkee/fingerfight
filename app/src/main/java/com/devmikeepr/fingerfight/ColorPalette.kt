@@ -14,6 +14,10 @@ object ColorPalette {
 
     const val WINNER_COLOR = 0xFF00E676.toInt()
     const val DIM_COLOR = 0xFF3A3A50.toInt()
+    const val TEAM_A_COLOR = 0xFF00E5FF.toInt()
+    const val TEAM_B_COLOR = 0xFFFF4081.toInt()
 
     fun colorFor(slotIndex: Int): Int = PLAYER_COLORS[slotIndex % PLAYER_COLORS.size]
+
+    fun colorForTeam(teamIndex: Int): Int = if (teamIndex == 0) TEAM_A_COLOR else TEAM_B_COLOR
 }
