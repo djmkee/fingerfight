@@ -12,12 +12,15 @@ idea without requiring anyone to move.
 
 ## Modes
 
-Three scored duels, each playable as a Quick round or a Best of 3/5/7
+Four scored duels, each playable as a Quick round or a Best of 3/5/7
 championship with a running scoreboard:
 
 - **Reaction Duel** (2 players): hold a finger on your half of the screen.
   When the screen flashes "GO!", the first to lift wins the point. Lifting
   early is a false start and an automatic loss.
+- **Reaction Rumble** (2-8 players): the multiplayer sibling of Reaction
+  Duel — everyone holds a finger at once, first to lift after "GO!" wins.
+  Jumping the gun only disqualifies you for that round, not everyone else.
 - **Tap Battle** (2 players): place a finger to ready up, then tap your
   half as fast as you can after the countdown. First to the target tap
   count wins the round.
@@ -51,8 +54,14 @@ drawables and Canvas effects (no external art assets, no custom fonts):
   (`ViewAnimations.kt`).
 - **In-game effects** — every touch point has a neon glow (`Paint`
   shadow layers), finger-down triggers an expanding ripple ring, and
-  Finger Picker bursts confetti when it reveals a winner. All shared via
-  `BaseArenaView` so both game engines get them for free.
+  Finger Picker/Reaction Rumble burst confetti on a win. All shared via
+  `BaseArenaView` so every arena gets them for free.
+- **Setup screens** — grouped into cards instead of a flat scrolling list,
+  with a sticky "Start" button pinned above the ad banner so it's always
+  reachable without scrolling.
+- **How to Play** — expandable per-mode accordion cards
+  (`View.expand()`/`collapse()` in `ViewAnimations.kt`) instead of one long
+  wall of text.
 
 ## Project layout
 
@@ -61,19 +70,21 @@ This is a standard Gradle/Android Studio project:
 - `app/` — the Android app module (Kotlin, View-based UI, no third-party
   game engine).
 - `app/src/main/java/com/devmikeepr/fingerfight/` — game logic:
-  - `ReactionArenaView`, `TapBattleArenaView`, `EnduranceArenaView` — the
-    three duel engines (custom `View`s handling raw `MotionEvent`s, timers
-    and win conditions).
+  - `ReactionArenaView`, `ReactionRumbleArenaView`, `TapBattleArenaView`,
+    `EnduranceArenaView` — the four duel engines (custom `View`s handling
+    raw `MotionEvent`s, timers and win conditions).
   - `PickerArenaView` — the Finger Picker engine shared by Single Pick,
     Full Order and Team Split (dynamic headcount, lock-in grace period,
     decelerating spin animation).
   - `BaseArenaView` — shared drawing/effects: glow circles, touch ripples,
     confetti bursts, shrink-and-fade eliminations.
   - `GlowBackgroundView` — the animated menu/screen backdrop.
-  - `ViewAnimations.kt` — reusable press-scale and pop-in animations.
+  - `ViewAnimations.kt` — reusable press-scale, pop-in and
+    expand/collapse (accordion) animations.
   - `GameActivity` — duel round flow, scoring and the championship
-    leaderboard (mode-agnostic across Reaction/Tap Battle/Endurance).
-  - `SetupActivity` — duel setup (rounds, and player count for Endurance).
+    leaderboard (mode-agnostic across all four duels).
+  - `SetupActivity` — duel setup (rounds, and player count for
+    Endurance/Reaction Rumble).
   - `PickerActivity` / `PickerSetupActivity` — Finger Picker setup and
     reveal/ranking/team screen.
   - `MainActivity`, `HowToPlayActivity` — menu screens.

@@ -72,6 +72,10 @@ class PickerSetupActivity : AppCompatActivity() {
         btnOrderPresetTurn.setOnClickListener { editListTitle.setText(getString(R.string.order_preset_turn)) }
         btnOrderPresetDraft.setOnClickListener { editListTitle.setText(getString(R.string.order_preset_draft)) }
 
+        btnOrderPresetTurn.applyPressAnimation()
+        btnOrderPresetDraft.applyPressAnimation()
+        btnStart.applyPressAnimation()
+
         btnStart.setOnClickListener {
             val intent = Intent(this, PickerActivity::class.java)
             intent.putExtra(PickerActivity.EXTRA_PICK_TYPE, pickType.name)

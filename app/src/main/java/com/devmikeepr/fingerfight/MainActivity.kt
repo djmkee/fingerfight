@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
         val textTitle = findViewById<View>(R.id.text_title)
         val textTagline = findViewById<View>(R.id.text_tagline)
         val cardReaction = findViewById<MaterialCardView>(R.id.card_reaction)
+        val cardRumble = findViewById<MaterialCardView>(R.id.card_rumble)
         val cardTapBattle = findViewById<MaterialCardView>(R.id.card_tap_battle)
         val cardEndurance = findViewById<MaterialCardView>(R.id.card_endurance)
         val cardPicker = findViewById<MaterialCardView>(R.id.card_picker)
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         val switchHaptics = findViewById<SwitchMaterial>(R.id.switch_haptics)
 
         cardReaction.setOnClickListener { openDuelSetup(DuelMode.REACTION) }
+        cardRumble.setOnClickListener { openDuelSetup(DuelMode.REACTION_RUMBLE) }
         cardTapBattle.setOnClickListener { openDuelSetup(DuelMode.TAP_BATTLE) }
         cardEndurance.setOnClickListener { openDuelSetup(DuelMode.ENDURANCE) }
         cardPicker.setOnClickListener {
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         cardReaction.applyPressAnimation()
+        cardRumble.applyPressAnimation()
         cardTapBattle.applyPressAnimation()
         cardEndurance.applyPressAnimation()
         cardPicker.applyPressAnimation()
@@ -60,13 +63,14 @@ class MainActivity : AppCompatActivity() {
 
         textTitle.popIn(0)
         textTagline.popIn(60)
-        cardReaction.popIn(140)
-        cardTapBattle.popIn(200)
-        cardEndurance.popIn(260)
+        cardReaction.popIn(120)
+        cardRumble.popIn(170)
+        cardTapBattle.popIn(220)
+        cardEndurance.popIn(270)
         cardPicker.popIn(320)
-        btnHowToPlay.popIn(380)
-        rowSound.popIn(420)
-        rowHaptics.popIn(450)
+        btnHowToPlay.popIn(370)
+        rowSound.popIn(410)
+        rowHaptics.popIn(440)
 
         findViewById<AdView>(R.id.ad_view).loadStandardAd()
     }

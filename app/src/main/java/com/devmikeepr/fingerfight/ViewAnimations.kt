@@ -1,7 +1,11 @@
 package com.devmikeepr.fingerfight
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 
 /** Adds a small tactile scale-down/scale-up on press, without swallowing the click. */
@@ -39,4 +43,49 @@ fun View.popIn(delayMs: Long = 0L) {
         .setDuration(420)
         .setInterpolator(OvershootInterpolator(1.1f))
         .start()
+}
+
+/** Smoothly grows a GONE/collapsed view open to its natural (wrap_content) height. */
+fun View.expand(durationMs: Long = 220L) {
+    val parentWidth = (parent as View).width
+    measure(
+        View.MeasureSpec.makeMeasureSpec(parentWidth, View.MeasureSpec.AT_MOST),
+        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+    )
+    val targetHeight = measuredHeight
+    layoutParams.height = 0
+    visibility = View.VISIBLE
+    ValueAnimator.ofInt(0, targetHeight).apply {
+        duration = durationMs
+        addUpdateListener {
+            layoutParams.height = it.animatedValue as Int
+            requestLayout()
+        }
+        addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                requestLayout()
+            }
+        })
+        start()
+    }
+}
+
+/** Smoothly shrinks a visible view closed, then sets it GONE. */
+fun View.collapse(durationMs: Long = 200L) {
+    val initialHeight = height
+    ValueAnimator.ofInt(initialHeight, 0).apply {
+        duration = durationMs
+        addUpdateListener {
+            layoutParams.height = it.animatedValue as Int
+            requestLayout()
+        }
+        addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                visibility = View.GONE
+                layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+        })
+        start()
+    }
 }

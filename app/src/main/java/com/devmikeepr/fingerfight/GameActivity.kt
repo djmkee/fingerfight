@@ -107,6 +107,7 @@ class GameActivity : AppCompatActivity(), ArenaListener {
             DuelMode.REACTION -> ReactionArenaView(this)
             DuelMode.TAP_BATTLE -> TapBattleArenaView(this)
             DuelMode.ENDURANCE -> EnduranceArenaView(this, playerCount)
+            DuelMode.REACTION_RUMBLE -> ReactionRumbleArenaView(this, playerCount)
         }
         newArena.listener = this
         newArena.soundManager = soundManager

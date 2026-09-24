@@ -29,6 +29,8 @@
     <color name="card_tapbattle_end">#3D1E14</color>
     <color name="card_endurance_start">#1E5A3A</color>
     <color name="card_endurance_end">#143D28</color>
+    <color name="card_rumble_start">#5A4A1E</color>
+    <color name="card_rumble_end">#3D3014</color>
     <color name="card_picker_start">#3A1B52</color>
     <color name="card_picker_end">#1F0F30</color>
 </resources>

@@ -11,10 +11,12 @@
     <string name="admob_banner_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
 
     <string name="action_play">Reaction Duel</string>
+    <string name="action_reaction_rumble">Reaction Rumble</string>
     <string name="action_tap_battle">Tap Battle</string>
     <string name="action_endurance">Endurance</string>
     <string name="action_picker">Finger Picker</string>
     <string name="card_reaction_subtitle">Fast 1v1 showdown</string>
+    <string name="card_rumble_subtitle">Multiplayer reaction race</string>
     <string name="card_tapbattle_subtitle">Race to tap the fastest</string>
     <string name="card_endurance_subtitle">Last one holding wins</string>
     <string name="card_picker_subtitle">Random picks, no setup</string>
@@ -32,14 +34,17 @@
     <string name="action_next_round">Next Round</string>
     <string name="action_see_champion">See Champion</string>
 
-    <!-- Duel setup (Reaction / Tap Battle / Endurance) -->
+    <!-- Duel setup (Reaction / Tap Battle / Endurance / Reaction Rumble) -->
     <string name="setup_players">Players</string>
+    <string name="player_range_format">%1$d-%2$d players</string>
     <string name="setup_reaction_title">Reaction Duel</string>
     <string name="setup_reaction_subtitle">2 players. First to lift after \"GO!\" wins the round.</string>
     <string name="setup_tapbattle_title">Tap Battle</string>
     <string name="setup_tapbattle_subtitle">2 players. Race to tap your side the fastest and hit the target first.</string>
     <string name="setup_endurance_title">Endurance</string>
     <string name="setup_endurance_subtitle">2-8 players. Hold your finger down - last one still holding wins.</string>
+    <string name="setup_rumble_title">Reaction Rumble</string>
+    <string name="setup_rumble_subtitle">2-8 players. Everyone holds on - first to lift after \"GO!\" wins.</string>
     <string name="setup_rounds">Match Length</string>
     <string name="rounds_quick">Quick (1)</string>
     <string name="rounds_bo3">Best of 3</string>
@@ -51,6 +56,7 @@
     <string name="lobby_tap_battle">Both players place a finger on your half to start</string>
     <string name="lobby_endurance_format">Place %1$d fingers on screen (%2$d / %3$d ready)</string>
     <string name="endurance_hold_message">Hold on as long as you can...</string>
+    <string name="early_lift_format">Player %1$d jumped the gun!</string>
     <string name="countdown_message">Hold steady...</string>
     <string name="go_message">GO!</string>
 
@@ -63,6 +69,7 @@
     <!-- Finger Picker setup -->
     <string name="picker_setup_title">Finger Picker</string>
     <string name="picker_setup_subtitle">No player count needed - everyone just places a finger when ready.</string>
+    <string name="picker_pick_type_label">Pick Type</string>
     <string name="pick_type_single">Single Pick</string>
     <string name="pick_type_order">Full Order</string>
     <string name="pick_type_team_split">Team Split</string>
@@ -101,27 +108,20 @@
     </plurals>
 
     <string name="how_to_play_title">How to Play</string>
-    <string name="how_to_play_text">REACTION DUEL (2 players)
-1. Player 1 holds a finger on the left half, Player 2 on the right half.
-2. After a random delay, the screen flashes \"GO!\" - the first player to lift their finger wins the point.
-3. Lifting before \"GO!\" is a false start and an automatic loss of the round.
+    <string name="how_to_play_intro">Tap a mode below for the full rules. The four duels (Reaction Duel, Reaction Rumble, Tap Battle, Endurance) can all be played as a Quick round or a Best of 3/5/7 championship -- points carry over between rounds and whoever has the most when the match ends is crowned Champion.</string>
 
-TAP BATTLE (2 players)
-Place a finger on your half to ready up, then tap your side as fast as you can after the countdown. First to the target number of taps wins the round.
-
-ENDURANCE (2-8 players)
-Everyone places a finger on the screen at once. As soon as all fingers are down, the clock starts - whoever lifts first is out. The last finger still touching the screen wins.
-
-All three duels can be played as a Quick round or a Best of 3/5/7 championship. Points carry over between rounds and whoever has the most when the match ends is crowned Champion (ties share the title).
-
-FINGER PICKER - Single Pick
-1. Everyone places a finger anywhere on the screen - no need to say how many people are playing first.
-2. Once fingers stop arriving for a moment, the app locks in and spins through everyone before landing on one at random.
-3. Pick a purpose before you start - Who Pays, Who\'s It, Goes First, Truth or Dare, or write your own - and the winner is announced by number.
-
-FINGER PICKER - Full Order
-Works just like Single Pick, but instead of stopping after one winner, it keeps spinning and picking fingers one at a time until everyone has a rank - handy for turn order, team drafts, or deciding a whole night\'s chore rotation in one go.
-
-FINGER PICKER - Team Split
-Everyone places a finger, then the app randomly and evenly divides the group into Team A and Team B - a quick way to pick teams for anything.</string>
+    <string name="htp_reaction_title">Reaction Duel</string>
+    <string name="htp_reaction_body">Two players each hold a finger on their half of the screen. After a random delay, the screen flashes \"GO!\" and the first to lift wins the point. Lifting before \"GO!\" is a false start and loses the round.</string>
+    <string name="htp_rumble_title">Reaction Rumble</string>
+    <string name="htp_rumble_body">Two to eight players all hold a finger down at once. After a random delay, the screen flashes \"GO!\" and the first to lift wins. Lifting early only disqualifies you for that round -- everyone else keeps playing.</string>
+    <string name="htp_tapbattle_title">Tap Battle</string>
+    <string name="htp_tapbattle_body">Two players place a finger on their half to ready up. After a 3-2-1 countdown, tap your side as fast as you can. First to reach the target number of taps wins the round.</string>
+    <string name="htp_endurance_title">Endurance</string>
+    <string name="htp_endurance_body">Two to eight players hold a finger down at once. As soon as everyone is down, the clock starts -- whoever lifts first is out. The last finger still touching the screen wins.</string>
+    <string name="htp_single_title">Finger Picker: Single Pick</string>
+    <string name="htp_single_body">Everyone places a finger anywhere on the screen -- no need to say how many people are playing first. Once fingers stop arriving, the app spins through everyone and lands on one at random. Choose a purpose before you start: Who Pays, Who\'s It, Goes First, Truth or Dare, or write your own.</string>
+    <string name="htp_order_title">Finger Picker: Full Order</string>
+    <string name="htp_order_body">Works just like Single Pick, but instead of stopping after one winner it keeps picking fingers one at a time until everyone has a rank -- handy for turn order, team drafts, or deciding a whole night\'s chore rotation in one go.</string>
+    <string name="htp_teamsplit_title">Finger Picker: Team Split</string>
+    <string name="htp_teamsplit_body">Everyone places a finger, then the app randomly and evenly divides the group into Team A and Team B -- a quick way to pick teams for anything.</string>
 </resources>
