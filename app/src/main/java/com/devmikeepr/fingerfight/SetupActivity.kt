@@ -1,10 +1,13 @@
 package com.devmikeepr.fingerfight
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.ImageViewCompat
 import com.google.android.gms.ads.AdView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -27,6 +30,11 @@ class SetupActivity : AppCompatActivity() {
         playerCount = if (usesPlayerCount) 4 else mode.minPlayers
 
         glowBackground = findViewById(R.id.glow_background)
+        val heroBackground = findViewById<View>(R.id.hero_background)
+        val iconHero = findViewById<ImageView>(R.id.icon_hero)
+        val iconPlayers = findViewById<ImageView>(R.id.icon_players)
+        val iconRounds = findViewById<ImageView>(R.id.icon_rounds)
+        val cardRounds = findViewById<MaterialCardView>(R.id.card_rounds)
         val textTitle = findViewById<TextView>(R.id.text_setup_title)
         val textSubtitle = findViewById<TextView>(R.id.text_setup_subtitle)
         val cardPlayers = findViewById<MaterialCardView>(R.id.card_players)
@@ -36,6 +44,17 @@ class SetupActivity : AppCompatActivity() {
         val btnPlus = findViewById<MaterialButton>(R.id.btn_players_plus)
         val toggleRounds = findViewById<MaterialButtonToggleGroup>(R.id.toggle_rounds)
         val btnStart = findViewById<MaterialButton>(R.id.btn_start_match)
+
+        val accentColor = getColor(ModeStyle.accentColorRes(mode))
+        heroBackground.setBackgroundResource(ModeStyle.heroBackgroundRes(mode))
+        iconHero.setImageResource(ModeStyle.iconRes(mode))
+        val accentTint = ColorStateList.valueOf(accentColor)
+        ImageViewCompat.setImageTintList(iconPlayers, accentTint)
+        ImageViewCompat.setImageTintList(iconRounds, accentTint)
+        cardPlayers.strokeColor = accentColor
+        cardRounds.strokeColor = accentColor
+        btnPlus.backgroundTintList = accentTint
+        btnStart.backgroundTintList = accentTint
 
         when (mode) {
             DuelMode.REACTION -> {

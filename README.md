@@ -53,16 +53,26 @@ drawables and Canvas effects (no external art assets, no custom fonts):
   grid of smaller mode tiles) with gradient fills, hand-drawn icons, a
   staggered pop-in entrance animation, and a tactile scale-down + real
   haptic tick on press (`ViewAnimations.kt`).
+- **Per-mode color identity** (`ModeStyle.kt`) — each duel and Finger Picker
+  has its own accent color (cyan for Reaction, amber for Rumble, orange for
+  Tap Battle, green for Endurance, magenta for Finger Picker). Setup and
+  How to Play screens use it to tint icons, card outlines and primary
+  buttons, and a gradient hero banner (reusing the same card art from the
+  main menu) tops every setup screen so the inner screens read as an
+  extension of the main menu instead of a flat gray form.
 - **In-game effects** — every touch point has a neon glow (`Paint`
   shadow layers), finger-down triggers an expanding ripple ring, and
   Finger Picker/Reaction Rumble burst confetti on a win. All shared via
   `BaseArenaView` so every arena gets them for free.
-- **Setup screens** — grouped into cards instead of a flat scrolling list,
-  with a sticky "Start" button pinned above the ad banner so it's always
-  reachable without scrolling.
+- **Setup screens** — grouped into color-accented cards instead of a flat
+  scrolling list, with a sticky "Start" button pinned above the ad banner
+  so it's always reachable without scrolling.
 - **How to Play** — expandable per-mode accordion cards
-  (`View.expand()`/`collapse()` in `ViewAnimations.kt`) instead of one long
-  wall of text.
+  (`View.expand()`/`collapse()` in `ViewAnimations.kt`), each tinted with
+  its mode's accent color, instead of one long wall of text.
+- **Toggle buttons** (match length, pick type, order presets) autosize their
+  text so labels like "Best of 3" or "Team Split" always fit instead of
+  clipping on narrow screens.
 
 ## Project layout
 
@@ -82,6 +92,8 @@ This is a standard Gradle/Android Studio project:
   - `GlowBackgroundView` — the animated menu/screen backdrop.
   - `ViewAnimations.kt` — reusable press-scale, pop-in and
     expand/collapse (accordion) animations.
+  - `ModeStyle.kt` — per-mode accent color/icon/hero-art lookup used by
+    `SetupActivity` and `HowToPlayActivity` to color each screen.
   - `GameActivity` — duel round flow, scoring and the championship
     leaderboard (mode-agnostic across all four duels).
   - `SetupActivity` — duel setup (rounds, and player count for

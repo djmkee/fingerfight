@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -27,6 +28,7 @@ class PickerActivity : AppCompatActivity(), PickerListener {
     private lateinit var titleText: TextView
     private lateinit var instructionText: TextView
     private lateinit var revealText: TextView
+    private lateinit var orderListScroll: ScrollView
     private lateinit var orderListContainer: LinearLayout
     private lateinit var btnSpinAgain: MaterialButton
     private lateinit var btnNewSetup: MaterialButton
@@ -48,9 +50,14 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         titleText = findViewById(R.id.picker_title_text)
         instructionText = findViewById(R.id.picker_instruction_text)
         revealText = findViewById(R.id.picker_reveal_text)
+        orderListScroll = findViewById(R.id.order_list_scroll)
         orderListContainer = findViewById(R.id.order_list_container)
         btnSpinAgain = findViewById(R.id.btn_spin_again)
         btnNewSetup = findViewById(R.id.btn_new_setup)
+
+        // The reveal text is only shown for Single Pick; Order/Team Split use the side
+        // list instead, so hide that panel here to let the single-pick result center fully.
+        orderListScroll.visibility = if (pickType == PickType.SINGLE) View.GONE else View.VISIBLE
 
         titleText.text = if (pickType == PickType.SINGLE) getString(purpose.labelRes) else listTitle
         btnSpinAgain.visibility = View.GONE

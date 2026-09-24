@@ -33,4 +33,12 @@
     <color name="card_rumble_end">#3D3014</color>
     <color name="card_picker_start">#3A1B52</color>
     <color name="card_picker_end">#1F0F30</color>
+
+    <!-- Per-mode accent colors, used to give each duel/picker screen its own
+         identity (icon tints, card outlines, primary buttons) instead of
+         every inner screen looking the same flat dark gray. -->
+    <color name="accent_rumble">#FFC400</color>
+    <color name="accent_tapbattle">#FF6E40</color>
+    <color name="accent_endurance">#00E676</color>
+    <color name="accent_picker">#E040FB</color>
 </resources>

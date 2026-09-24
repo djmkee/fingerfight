@@ -34,30 +34,65 @@
                     android:orientation="vertical"
                     android:padding="24dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:letterSpacing="0.01"
-                        android:text="@string/picker_setup_title"
-                        android:textColor="@color/text_primary"
-                        android:textSize="24sp"
-                        android:textStyle="bold" />
+                        app:cardBackgroundColor="@android:color/transparent"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="6dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/picker_setup_subtitle"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_card_picker"
+                            android:gravity="center_vertical"
+                            android:minHeight="96dp"
+                            android:orientation="horizontal"
+                            android:padding="20dp">
+
+                            <ImageView
+                                android:layout_width="42dp"
+                                android:layout_height="42dp"
+                                android:src="@drawable/ic_touch_rings" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:letterSpacing="0.01"
+                                    android:text="@string/picker_setup_title"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:alpha="0.85"
+                                    android:lineSpacingExtra="2dp"
+                                    android:text="@string/picker_setup_subtitle"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
+                        android:layout_marginTop="16dp"
                         app:cardBackgroundColor="@color/surface_dark"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="0dp">
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/accent_picker"
+                        app:strokeWidth="1.5dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -74,7 +109,8 @@
                                 <ImageView
                                     android:layout_width="20dp"
                                     android:layout_height="20dp"
-                                    android:src="@drawable/ic_touch_rings" />
+                                    android:src="@drawable/ic_touch_rings"
+                                    app:tint="@color/accent_picker" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -96,29 +132,26 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btn_pick_single"
-                                    style="?attr/materialButtonOutlinedStyle"
+                                    style="@style/Widget.FingerFight.ToggleButton"
                                     android:layout_width="0dp"
                                     android:layout_height="48dp"
                                     android:layout_weight="1"
-                                    android:textSize="12sp"
                                     android:text="@string/pick_type_single" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btn_pick_order"
-                                    style="?attr/materialButtonOutlinedStyle"
+                                    style="@style/Widget.FingerFight.ToggleButton"
                                     android:layout_width="0dp"
                                     android:layout_height="48dp"
                                     android:layout_weight="1"
-                                    android:textSize="12sp"
                                     android:text="@string/pick_type_order" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btn_pick_team_split"
-                                    style="?attr/materialButtonOutlinedStyle"
+                                    style="@style/Widget.FingerFight.ToggleButton"
                                     android:layout_width="0dp"
                                     android:layout_height="48dp"
                                     android:layout_weight="1"
-                                    android:textSize="12sp"
                                     android:text="@string/pick_type_team_split" />
                             </com.google.android.material.button.MaterialButtonToggleGroup>
                         </LinearLayout>
@@ -131,7 +164,9 @@
                         android:layout_marginTop="16dp"
                         app:cardBackgroundColor="@color/surface_dark"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="0dp">
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/accent_picker"
+                        app:strokeWidth="1.5dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -148,7 +183,8 @@
                                 <ImageView
                                     android:layout_width="20dp"
                                     android:layout_height="20dp"
-                                    android:src="@drawable/ic_info" />
+                                    android:src="@drawable/ic_info"
+                                    app:tint="@color/accent_picker" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -233,6 +269,8 @@
                         app:cardBackgroundColor="@color/surface_dark"
                         app:cardCornerRadius="16dp"
                         app:cardElevation="0dp"
+                        app:strokeColor="@color/accent_picker"
+                        app:strokeWidth="1.5dp"
                         android:visibility="gone">
 
                         <LinearLayout
@@ -257,21 +295,19 @@
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btn_order_preset_turn"
-                                    style="?attr/materialButtonOutlinedStyle"
+                                    style="@style/Widget.FingerFight.ToggleButton"
                                     android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
+                                    android:layout_height="44dp"
                                     android:layout_weight="1"
                                     android:layout_marginEnd="8dp"
-                                    android:textSize="12sp"
                                     android:text="@string/order_preset_turn" />
 
                                 <com.google.android.material.button.MaterialButton
                                     android:id="@+id/btn_order_preset_draft"
-                                    style="?attr/materialButtonOutlinedStyle"
+                                    style="@style/Widget.FingerFight.ToggleButton"
                                     android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
+                                    android:layout_height="44dp"
                                     android:layout_weight="1"
-                                    android:textSize="12sp"
                                     android:text="@string/order_preset_draft" />
                             </LinearLayout>
 
@@ -301,7 +337,7 @@
                 android:layout_marginBottom="16dp"
                 android:text="@string/action_start_match"
                 android:textSize="18sp"
-                app:backgroundTint="@color/accent"
+                app:backgroundTint="@color/accent_picker"
                 app:elevation="6dp" />
 
         </LinearLayout>
