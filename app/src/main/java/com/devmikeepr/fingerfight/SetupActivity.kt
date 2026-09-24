@@ -78,8 +78,9 @@ class SetupActivity : AppCompatActivity() {
         }
 
         toggleRounds.check(R.id.btn_rounds_3)
-        toggleRounds.addOnButtonCheckedListener { _, checkedId, isChecked ->
+        toggleRounds.addOnButtonCheckedListener { group, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
+            group.hapticTick()
             totalRounds = when (checkedId) {
                 R.id.btn_rounds_1 -> 1
                 R.id.btn_rounds_3 -> 3

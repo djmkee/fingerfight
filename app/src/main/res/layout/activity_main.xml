@@ -31,9 +31,10 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
+                android:letterSpacing="0.01"
                 android:text="@string/app_name"
                 android:textColor="@color/text_primary"
-                android:textSize="30sp"
+                android:textSize="32sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -50,6 +51,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/text_title" />
 
+            <!-- Bento grid: one featured hero tile, then a 2x2 grid of smaller tiles -->
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_reaction"
                 android:layout_width="0dp"
@@ -59,7 +62,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="18dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="8dp"
                 app:rippleColor="@color/accent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -72,17 +75,18 @@
                     android:background="@drawable/bg_card_reaction"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="18dp">
+                    android:minHeight="96dp"
+                    android:padding="20dp">
 
                     <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
                         android:src="@drawable/ic_bolt" />
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
+                        android:layout_marginStart="16dp"
                         android:layout_weight="1"
                         android:orientation="vertical">
 
@@ -91,7 +95,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/action_play"
                             android:textColor="@color/text_primary"
-                            android:textSize="18sp"
+                            android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -100,230 +104,228 @@
                             android:layout_marginTop="2dp"
                             android:text="@string/card_reaction_subtitle"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_rumble"
+            <LinearLayout
+                android:id="@+id/grid_row_1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:checkable="false"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="8dp"
-                app:rippleColor="@color/accent"
+                android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="@id/card_reaction"
                 app:layout_constraintStart_toStartOf="@id/card_reaction"
                 app:layout_constraintTop_toBottomOf="@id/card_reaction">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_rumble"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card_rumble"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="18dp">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_bolt_group" />
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:checkable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="8dp"
+                    app:rippleColor="@color/accent">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:background="@drawable/bg_card_rumble"
+                        android:gravity="center"
+                        android:minHeight="128dp"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:src="@drawable/ic_bolt_group" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
                             android:text="@string/action_reaction_rumble"
                             android:textColor="@color/text_primary"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:gravity="center"
                             android:text="@string/card_rumble_subtitle"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_tap_battle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:checkable="false"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="8dp"
-                app:rippleColor="@color/accent"
-                app:layout_constraintEnd_toEndOf="@id/card_reaction"
-                app:layout_constraintStart_toStartOf="@id/card_reaction"
-                app:layout_constraintTop_toBottomOf="@id/card_rumble">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_tap_battle"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card_tapbattle"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="18dp">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_tap" />
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:checkable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="8dp"
+                    app:rippleColor="@color/accent">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:background="@drawable/bg_card_tapbattle"
+                        android:gravity="center"
+                        android:minHeight="128dp"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:src="@drawable/ic_tap" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
                             android:text="@string/action_tap_battle"
                             android:textColor="@color/text_primary"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:gravity="center"
                             android:text="@string/card_tapbattle_subtitle"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_endurance"
+            <LinearLayout
+                android:id="@+id/grid_row_2"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:checkable="false"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="8dp"
-                app:rippleColor="@color/accent"
+                android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="@id/card_reaction"
                 app:layout_constraintStart_toStartOf="@id/card_reaction"
-                app:layout_constraintTop_toBottomOf="@id/card_tap_battle">
+                app:layout_constraintTop_toBottomOf="@id/grid_row_1">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_endurance"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card_endurance"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="18dp">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_hourglass" />
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:checkable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="8dp"
+                    app:rippleColor="@color/accent">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:background="@drawable/bg_card_endurance"
+                        android:gravity="center"
+                        android:minHeight="128dp"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:src="@drawable/ic_hourglass" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
                             android:text="@string/action_endurance"
                             android:textColor="@color/text_primary"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:gravity="center"
                             android:text="@string/card_endurance_subtitle"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_picker"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:checkable="false"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="8dp"
-                app:rippleColor="@color/accent"
-                app:layout_constraintEnd_toEndOf="@id/card_reaction"
-                app:layout_constraintStart_toStartOf="@id/card_reaction"
-                app:layout_constraintTop_toBottomOf="@id/card_endurance">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_picker"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card_picker"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="18dp">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_touch_rings" />
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:checkable="false"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardCornerRadius="18dp"
+                    app:cardElevation="8dp"
+                    app:rippleColor="@color/accent">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:background="@drawable/bg_card_picker"
+                        android:gravity="center"
+                        android:minHeight="128dp"
+                        android:orientation="vertical"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:src="@drawable/ic_touch_rings" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
                             android:text="@string/action_picker"
                             android:textColor="@color/text_primary"
-                            android:textSize="18sp"
+                            android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
+                            android:gravity="center"
                             android:text="@string/card_picker_subtitle"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_how_to_play"
@@ -338,7 +340,7 @@
                 app:strokeColor="@color/accent"
                 app:layout_constraintEnd_toEndOf="@id/card_reaction"
                 app:layout_constraintStart_toStartOf="@id/card_reaction"
-                app:layout_constraintTop_toBottomOf="@id/card_picker" />
+                app:layout_constraintTop_toBottomOf="@id/grid_row_2" />
 
             <LinearLayout
                 android:id="@+id/row_sound"

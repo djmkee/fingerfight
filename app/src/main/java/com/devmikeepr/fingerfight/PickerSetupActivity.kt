@@ -40,8 +40,9 @@ class PickerSetupActivity : AppCompatActivity() {
         )
 
         toggleType.check(R.id.btn_pick_single)
-        toggleType.addOnButtonCheckedListener { _, checkedId, isChecked ->
+        toggleType.addOnButtonCheckedListener { group, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
+            group.hapticTick()
             pickType = when (checkedId) {
                 R.id.btn_pick_single -> PickType.SINGLE
                 R.id.btn_pick_order -> PickType.ORDER
@@ -57,7 +58,8 @@ class PickerSetupActivity : AppCompatActivity() {
         }
 
         chipGroup.check(R.id.chip_who_pays)
-        chipGroup.setOnCheckedChangeListener { _, checkedId ->
+        chipGroup.setOnCheckedChangeListener { group, checkedId ->
+            group.hapticTick()
             purpose = when (checkedId) {
                 R.id.chip_who_pays -> PickerPurpose.WHO_PAYS
                 R.id.chip_whos_it -> PickerPurpose.WHOS_IT

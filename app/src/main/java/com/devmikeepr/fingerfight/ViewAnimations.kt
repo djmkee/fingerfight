@@ -3,16 +3,25 @@ package com.devmikeepr.fingerfight
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 
-/** Adds a small tactile scale-down/scale-up on press, without swallowing the click. */
+/** A short, purposeful haptic tick for a UI selection -- respects the Vibration setting. */
+fun View.hapticTick() {
+    if (Prefs.isHapticsEnabled(context)) {
+        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+    }
+}
+
+/** Adds a small tactile scale-down/scale-up on press (plus a haptic tick), without swallowing the click. */
 fun View.applyPressAnimation() {
     setOnTouchListener { v, event ->
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                v.hapticTick()
                 v.animate().scaleX(0.96f).scaleY(0.96f).setDuration(100).start()
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {

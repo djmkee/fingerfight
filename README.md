@@ -49,9 +49,10 @@ drawables and Canvas effects (no external art assets, no custom fonts):
 
 - **Animated backdrop** (`GlowBackgroundView`) — a slow-drifting gradient
   with soft glowing orbs, used behind every screen.
-- **Main menu** — mode cards with gradient fills, hand-drawn icons, a
-  staggered pop-in entrance animation, and a tactile scale-down on press
-  (`ViewAnimations.kt`).
+- **Main menu** — a bento-grid layout (one large featured card, plus a 2x2
+  grid of smaller mode tiles) with gradient fills, hand-drawn icons, a
+  staggered pop-in entrance animation, and a tactile scale-down + real
+  haptic tick on press (`ViewAnimations.kt`).
 - **In-game effects** — every touch point has a neon glow (`Paint`
   shadow layers), finger-down triggers an expanding ripple ring, and
   Finger Picker/Reaction Rumble burst confetti on a win. All shared via

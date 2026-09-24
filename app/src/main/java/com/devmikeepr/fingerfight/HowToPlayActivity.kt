@@ -43,6 +43,7 @@ class HowToPlayActivity : AppCompatActivity() {
 
             var expanded = false
             headerRow.setOnClickListener {
+                it.hapticTick()
                 expanded = !expanded
                 if (expanded) {
                     body.expand()
