@@ -102,6 +102,7 @@ class PickerArenaView(
         val number = nextParticipantNumber++
         pointerToParticipant[pointerId] = number
         activeTouches[number] = Touch(x, y)
+        spawnRipple(x, y, ColorPalette.colorFor(number - 1))
         pickerListener?.onLobbyUpdate(activeTouches.size)
         scheduleLockIn()
     }
@@ -161,6 +162,7 @@ class PickerArenaView(
         phase = PickerPhase.REVEALED
         soundManager?.playRoundWin()
         winnerParticipant = winner
+        activeTouches[winner]?.let { spawnConfettiBurst(it.x, it.y) }
         val remainingAfterThis = activeTouches.size - 1
         val isFinal = !eliminationMode || remainingAfterThis <= 1
         pickerListener?.onPickRevealed(winner, remainingAfterThis, isFinal)
@@ -201,6 +203,7 @@ class PickerArenaView(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        drawRipples(canvas)
         for ((number, touch) in activeTouches) {
             val isHighlighted = number == highlightedParticipant
             val isWinner = phase != PickerPhase.SPINNING && number == winnerParticipant
@@ -212,6 +215,7 @@ class PickerArenaView(
             val radius = if (isHighlighted || isWinner) radiusPx * 1.2f else radiusPx
             drawPlayerCircle(canvas, touch.x, touch.y, radius, color, number.toString())
         }
+        drawConfetti(canvas)
     }
 
     companion object {

@@ -15,4 +15,16 @@
     <color name="player_4">#FDD835</color>
     <color name="player_5">#8E24AA</color>
     <color name="player_6">#FB8C00</color>
+
+    <!-- Menu background gradient + ambient glow orbs -->
+    <color name="bg_gradient_top">#120E24</color>
+    <color name="bg_gradient_bottom">#0A0716</color>
+    <color name="glow_accent_1">#3D00E5FF</color>
+    <color name="glow_accent_2">#3DE500B8</color>
+    <color name="glow_accent_3">#3DFF6B35</color>
+
+    <color name="card_reaction_start">#1E2A5A</color>
+    <color name="card_reaction_end">#141B3D</color>
+    <color name="card_picker_start">#3A1B52</color>
+    <color name="card_picker_end">#1F0F30</color>
 </resources>

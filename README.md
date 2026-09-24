@@ -26,6 +26,21 @@ idea without requiring anyone to move.
   useful for turn order, team drafts, chore rotations, or anything else
   that needs a random order decided on the spot.
 
+## Look & feel
+
+The whole app shares one visual language, built entirely from vector
+drawables and Canvas effects (no external art assets, no custom fonts):
+
+- **Animated backdrop** (`GlowBackgroundView`) — a slow-drifting gradient
+  with soft glowing orbs, used behind every screen.
+- **Main menu** — mode cards with gradient fills, hand-drawn icons, a
+  staggered pop-in entrance animation, and a tactile scale-down on press
+  (`ViewAnimations.kt`).
+- **In-game effects** — every touch point has a neon glow (`Paint`
+  shadow layers), finger-down triggers an expanding ripple ring, and
+  Finger Picker bursts confetti when it reveals a winner. All shared via
+  `BaseArenaView` so both game engines get them for free.
+
 ## Project layout
 
 This is a standard Gradle/Android Studio project:
@@ -38,6 +53,10 @@ This is a standard Gradle/Android Studio project:
   - `PickerArenaView` — the Finger Picker engine shared by Single Pick and
     Full Order (dynamic headcount, lock-in grace period, decelerating spin
     animation, repeat-until-ranked elimination).
+  - `BaseArenaView` — shared drawing/effects: glow circles, touch ripples,
+    confetti bursts.
+  - `GlowBackgroundView` — the animated menu/screen backdrop.
+  - `ViewAnimations.kt` — reusable press-scale and pop-in animations.
   - `GameActivity` — Reaction Duel round flow, scoring and the
     championship leaderboard.
   - `PickerActivity` / `PickerSetupActivity` — Finger Picker setup and
@@ -46,7 +65,7 @@ This is a standard Gradle/Android Studio project:
 - `app/src/main/res/raw/` — short synthesized sound effects (no external
   assets).
 
-## Building
+## Building (debug)
 
 Open the project root in Android Studio (Giraffe or newer) and let it sync,
 or from the command line:
@@ -67,6 +86,55 @@ Playtest note: Reaction Duel works with the emulator's mouse pointer (one
 finger). The Finger Picker modes need genuine multitouch to test properly —
 use a real device, or the emulator's Ctrl-drag two-finger gesture for a
 2-finger sanity check.
+
+## Building a signed release (for the Play Store or direct install)
+
+Release builds are unsigned by default (Gradle just skips signing if it
+can't find a keystore) so debug work is never blocked. To produce a real,
+installable release build:
+
+**1. Generate a keystore (once, on your own machine — never commit this file):**
+
+```
+keytool -genkeypair -v -keystore fingerfight-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias fingerfight
+```
+
+It'll ask for a keystore password, your name/org details, and a key
+password (you can reuse the keystore password). Keep this file and its
+passwords safe — losing it means you can never publish an update to the
+same app listing again.
+
+**2. Create `keystore.properties` in the project root** (same folder as
+`settings.gradle.kts`) — this file is already git-ignored:
+
+```properties
+storeFile=../fingerfight-release.jks
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyAlias=fingerfight
+keyPassword=YOUR_KEY_PASSWORD
+```
+
+(`storeFile` is relative to the `app/` module, so `../` if the `.jks` sits
+next to `settings.gradle.kts` as in the command above — adjust the path if
+you put it somewhere else.)
+
+**3. Build:**
+
+```
+./gradlew bundleRelease   # produces app/build/outputs/bundle/release/app-release.aab (Play Store)
+./gradlew assembleRelease # produces app/build/outputs/apk/release/app-release.apk (direct install/testing)
+```
+
+Both are signed with your keystore and have code/resource shrinking
+enabled (`isMinifyEnabled` / `isShrinkResources`), so they're
+production-sized, not debug builds.
+
+**Before submitting to the Play Store**, you'll also need (outside of what
+I can generate here): a 512x512 hi-res icon (Android Studio's **Image
+Asset** tool can export one from the existing adaptive icon), a 1024x500
+feature graphic, a few screenshots, and a privacy policy URL — `privacy.html`
+in this repo already covers the last one, just host it somewhere public
+(GitHub Pages works) and paste that URL into the Play Console listing.
 
 ## Privacy
 

@@ -20,6 +20,7 @@ class PickerActivity : AppCompatActivity(), PickerListener {
 
     private lateinit var soundManager: SoundManager
     private lateinit var arenaContainer: FrameLayout
+    private lateinit var glowBackground: GlowBackgroundView
     private var arenaView: PickerArenaView? = null
 
     private lateinit var titleText: TextView
@@ -42,6 +43,7 @@ class PickerActivity : AppCompatActivity(), PickerListener {
         soundManager = SoundManager(this)
 
         arenaContainer = findViewById(R.id.arena_container)
+        glowBackground = findViewById(R.id.glow_background)
         titleText = findViewById(R.id.picker_title_text)
         instructionText = findViewById(R.id.picker_instruction_text)
         revealText = findViewById(R.id.picker_reveal_text)
@@ -131,6 +133,16 @@ class PickerActivity : AppCompatActivity(), PickerListener {
                 instructionText.text = getString(R.string.picker_order_done)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        glowBackground.startAnimating()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        glowBackground.stopAnimating()
     }
 
     override fun onDestroy() {

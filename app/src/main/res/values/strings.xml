@@ -5,6 +5,8 @@
 
     <string name="action_play">Reaction Duel</string>
     <string name="action_picker">Finger Picker</string>
+    <string name="card_reaction_subtitle">Fast 1v1 showdown</string>
+    <string name="card_picker_subtitle">Random picks, no setup</string>
     <string name="action_how_to_play">How to Play</string>
     <string name="action_sound">Sound</string>
     <string name="action_haptics">Vibration</string>

@@ -10,11 +10,13 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 class SetupActivity : AppCompatActivity() {
 
     private var totalRounds = 3
+    private lateinit var glowBackground: GlowBackgroundView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_setup)
 
+        glowBackground = findViewById(R.id.glow_background)
         val toggleRounds = findViewById<MaterialButtonToggleGroup>(R.id.toggle_rounds)
         val btnStart = findViewById<MaterialButton>(R.id.btn_start_match)
 
@@ -36,5 +38,15 @@ class SetupActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        glowBackground.startAnimating()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        glowBackground.stopAnimating()
     }
 }

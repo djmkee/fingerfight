@@ -87,6 +87,7 @@ class ReactionArenaView(context: Context) : BaseArenaView(context) {
         if (pointerToSlot.containsValue(slot)) return
         pointerToSlot[pointerId] = slot
         slotTouches[slot] = Touch(x, y)
+        spawnRipple(x, y, ColorPalette.colorFor(slot))
         if (slotTouches.size == 2) {
             beginCountdown()
         }
@@ -108,6 +109,7 @@ class ReactionArenaView(context: Context) : BaseArenaView(context) {
             }
             GamePhase.ACTIVE -> {
                 val reactionMs = SystemClock.elapsedRealtime() - goElapsedRealtime
+                slotTouches[slot]?.let { spawnConfettiBurst(it.x, it.y) }
                 endRound(mapOf(slot to 1), "Player ${slot + 1} reacted in ${reactionMs}ms!")
             }
             GamePhase.ROUND_END -> Unit
@@ -129,6 +131,7 @@ class ReactionArenaView(context: Context) : BaseArenaView(context) {
         flashGo = true
         goElapsedRealtime = SystemClock.elapsedRealtime()
         soundManager?.playReveal()
+        spawnRipple(width / 2f, height / 2f, 0xFF00E5FF.toInt())
         listener?.onPhaseChanged(phase, context.getString(R.string.go_message))
         val timeout = Runnable {
             if (phase == GamePhase.ACTIVE) {
@@ -154,6 +157,7 @@ class ReactionArenaView(context: Context) : BaseArenaView(context) {
         if (flashGo) {
             canvas.drawColor(0x3300E676)
         }
+        drawRipples(canvas)
         val defaultX = arrayOf(width * 0.25f, width * 0.75f)
         for (slot in 0..1) {
             val touch = slotTouches[slot]
@@ -166,5 +170,6 @@ class ReactionArenaView(context: Context) : BaseArenaView(context) {
             messagePaint.textSize = dp(40f)
             canvas.drawText(context.getString(R.string.go_message), width / 2f, height / 2f, messagePaint)
         }
+        drawConfetti(canvas)
     }
 }

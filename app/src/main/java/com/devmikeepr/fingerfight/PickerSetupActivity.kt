@@ -14,11 +14,13 @@ class PickerSetupActivity : AppCompatActivity() {
 
     private var pickType = PickType.SINGLE
     private var purpose = PickerPurpose.WHO_PAYS
+    private lateinit var glowBackground: GlowBackgroundView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_picker_setup)
 
+        glowBackground = findViewById(R.id.glow_background)
         val toggleType = findViewById<MaterialButtonToggleGroup>(R.id.toggle_pick_type)
         val sectionSingle = findViewById<View>(R.id.section_single)
         val sectionOrder = findViewById<View>(R.id.section_order)
@@ -75,5 +77,15 @@ class PickerSetupActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        glowBackground.startAnimating()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        glowBackground.stopAnimating()
     }
 }

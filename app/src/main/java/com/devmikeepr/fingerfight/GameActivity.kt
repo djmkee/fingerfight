@@ -26,6 +26,7 @@ class GameActivity : AppCompatActivity(), ArenaListener {
     private lateinit var playerSlots: List<PlayerSlot>
     private lateinit var soundManager: SoundManager
     private lateinit var arenaContainer: FrameLayout
+    private lateinit var glowBackground: GlowBackgroundView
     private var arenaView: BaseArenaView? = null
 
     private lateinit var hudRoundText: TextView
@@ -49,6 +50,7 @@ class GameActivity : AppCompatActivity(), ArenaListener {
         soundManager = SoundManager(this)
 
         arenaContainer = findViewById(R.id.arena_container)
+        glowBackground = findViewById(R.id.glow_background)
         hudRoundText = findViewById(R.id.hud_round_text)
         hudMessageText = findViewById(R.id.hud_message_text)
         hudTimerText = findViewById(R.id.hud_timer_text)
@@ -189,6 +191,16 @@ class GameActivity : AppCompatActivity(), ArenaListener {
         }
 
         resultOverlay.visibility = View.VISIBLE
+    }
+
+    override fun onResume() {
+        super.onResume()
+        glowBackground.startAnimating()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        glowBackground.stopAnimating()
     }
 
     override fun onDestroy() {

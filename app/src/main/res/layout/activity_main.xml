@@ -1,123 +1,232 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background_dark"
-    android:padding="32dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/text_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textColor="@color/text_primary"
-        android:textSize="34sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.16" />
+    <com.devmikeepr.fingerfight.GlowBackgroundView
+        android:id="@+id/glow_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@+id/text_tagline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/tagline"
-        android:textColor="@color/accent"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/text_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_play"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="36dp"
-        android:text="@string/action_play"
-        android:textSize="18sp"
-        app:backgroundTint="@color/accent"
-        app:layout_constraintTop_toBottomOf="@id/text_tagline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_picker"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="12dp"
-        android:text="@string/action_picker"
-        android:textSize="18sp"
-        app:backgroundTint="@color/surface_light"
-        app:layout_constraintTop_toBottomOf="@id/btn_play"
-        app:layout_constraintStart_toStartOf="@id/btn_play"
-        app:layout_constraintEnd_toEndOf="@id/btn_play" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_how_to_play"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="12dp"
-        android:text="@string/action_how_to_play"
-        app:strokeColor="@color/accent"
-        android:textColor="@color/accent"
-        app:layout_constraintTop_toBottomOf="@id/btn_picker"
-        app:layout_constraintStart_toStartOf="@id/btn_play"
-        app:layout_constraintEnd_toEndOf="@id/btn_play" />
-
-    <LinearLayout
-        android:id="@+id/row_sound"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@id/btn_how_to_play"
-        app:layout_constraintStart_toStartOf="@id/btn_play"
-        app:layout_constraintEnd_toEndOf="@id/btn_play">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="28dp">
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/action_sound"
-            android:textColor="@color/text_primary" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switch_sound"
+            android:id="@+id/text_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/row_haptics"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toBottomOf="@id/row_sound"
-        app:layout_constraintStart_toStartOf="@id/btn_play"
-        app:layout_constraintEnd_toEndOf="@id/btn_play">
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:text="@string/app_name"
+            android:textColor="@color/text_primary"
+            android:textSize="32sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.08" />
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/action_haptics"
-            android:textColor="@color/text_primary" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switch_haptics"
+            android:id="@+id/text_tagline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true" />
-    </LinearLayout>
+            android:layout_marginTop="6dp"
+            android:text="@string/tagline"
+            android:textColor="@color/accent"
+            android:textSize="15sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_title" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_reaction"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:checkable="false"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:rippleColor="@color/accent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_tagline">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_reaction"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_bolt" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/action_play"
+                        android:textColor="@color/text_primary"
+                        android:textSize="19sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/card_reaction_subtitle"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_picker"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:checkable="false"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:rippleColor="@color/accent"
+            app:layout_constraintEnd_toEndOf="@id/card_reaction"
+            app:layout_constraintStart_toStartOf="@id/card_reaction"
+            app:layout_constraintTop_toBottomOf="@id/card_reaction">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_picker"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="20dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_touch_rings" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/action_picker"
+                        android:textColor="@color/text_primary"
+                        android:textSize="19sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/card_picker_subtitle"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_how_to_play"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="20dp"
+            android:text="@string/action_how_to_play"
+            android:textColor="@color/accent"
+            app:icon="@drawable/ic_info"
+            app:iconTint="@color/accent"
+            app:strokeColor="@color/accent"
+            app:layout_constraintEnd_toEndOf="@id/card_reaction"
+            app:layout_constraintStart_toStartOf="@id/card_reaction"
+            app:layout_constraintTop_toBottomOf="@id/card_picker" />
+
+        <LinearLayout
+            android:id="@+id/row_sound"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="@id/card_reaction"
+            app:layout_constraintStart_toStartOf="@id/card_reaction"
+            app:layout_constraintTop_toBottomOf="@id/btn_how_to_play">
+
+            <ImageView
+                android:id="@+id/icon_sound"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_sound_on" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/action_sound"
+                android:textColor="@color/text_primary" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_sound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row_haptics"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="@id/card_reaction"
+            app:layout_constraintStart_toStartOf="@id/card_reaction"
+            app:layout_constraintTop_toBottomOf="@id/row_sound">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_vibration" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="@string/action_haptics"
+                android:textColor="@color/text_primary" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_haptics"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
