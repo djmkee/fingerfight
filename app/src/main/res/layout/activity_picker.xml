@@ -62,7 +62,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:text="Player 3 pays the bill! 💸" />
+        tools:text="Player 3 pays the bill!" />
 
     <ScrollView
         android:id="@+id/order_list_scroll"

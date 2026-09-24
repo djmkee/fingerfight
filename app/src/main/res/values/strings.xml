@@ -36,8 +36,8 @@
     <string name="result_final_title">Champion!</string>
     <string name="result_round_title_format">Round %1$d Results</string>
     <string name="leaderboard_row_format">Player %1$d — %2$d pts</string>
-    <string name="champion_row_format">🏆 Player %1$d wins the championship!</string>
-    <string name="co_champion_row_format">🏆 Players %1$s tie as co-champions!</string>
+    <string name="champion_row_format">Player %1$d wins the championship!</string>
+    <string name="co_champion_row_format">Players %1$s tie as co-champions!</string>
 
     <!-- Finger Picker setup -->
     <string name="picker_setup_title">Finger Picker</string>
@@ -46,17 +46,17 @@
     <string name="pick_type_order">Full Order</string>
     <string name="picker_purpose_label">What\'s this for?</string>
     <string name="purpose_who_pays">Who Pays?</string>
-    <string name="purpose_who_pays_result">Player %1$d pays the bill! 💸</string>
+    <string name="purpose_who_pays_result">Player %1$d pays the bill!</string>
     <string name="purpose_whos_it">Who\'s It?</string>
-    <string name="purpose_whos_it_result">Player %1$d is it! 🏃</string>
+    <string name="purpose_whos_it_result">Player %1$d is it!</string>
     <string name="purpose_goes_first">Goes First?</string>
-    <string name="purpose_goes_first_result">Player %1$d goes first! 🎲</string>
+    <string name="purpose_goes_first_result">Player %1$d goes first!</string>
     <string name="purpose_truth_or_dare">Truth or Dare</string>
-    <string name="purpose_truth_or_dare_result">Player %1$d — Truth or Dare? 😈</string>
+    <string name="purpose_truth_or_dare_result">Player %1$d — Truth or Dare?</string>
     <string name="purpose_custom">Custom</string>
     <string name="purpose_custom_result_format">Player %1$d %2$s</string>
     <string name="picker_custom_hint">What happens to the picked player?</string>
-    <string name="picker_custom_default">is the chosen one! 🎉</string>
+    <string name="picker_custom_default">is the chosen one!</string>
     <string name="picker_order_title_label">List title</string>
     <string name="order_preset_turn">Turn Order</string>
     <string name="order_preset_draft">Draft Order</string>
