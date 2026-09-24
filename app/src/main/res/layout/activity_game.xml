@@ -51,7 +51,7 @@
             android:gravity="center"
             android:textColor="@color/accent"
             android:textSize="14sp"
-            tools:text="Hold steady…" />
+            tools:text="Hold steady..." />
 
         <TextView
             android:id="@+id/hud_timer_text"
