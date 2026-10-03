@@ -47,6 +47,7 @@ solana-desk/
 │   ├── tools/               dexscreener, jupiter (quotes only), solana_rpc, offline fixtures
 │   ├── db.py                SQLite: leads, positions, events (append-only), candidates, state
 │   ├── approval.py          the human gate
+│   ├── web.py + static/     the local dashboard (python main.py web)
 │   ├── policy.py settings.py guards.py handoff.py llm.py reporting.py cli.py
 └── src/signer/placeholder.py  boundary for a future out-of-process signer; refuses in v1
 ```
@@ -82,8 +83,10 @@ copy .env.example .env
 2. Create the environment with the commands above in VS Code's terminal, or run
    **Python: Create Environment** from the Command Palette (Venv; tick the `dev` extras if it
    asks). Then choose `.venv` with **Python: Select Interpreter**.
-3. **Run and Debug** (Ctrl+Shift+D) lists ready-made launch configurations: the offline demo,
-   the live loop, approve and reject (they ask for the lead ID), status, and the daily summary.
+3. **Run and Debug** (Ctrl+Shift+D), pick **Dashboard: buttons in your browser**, and press F5.
+   The dashboard opens in your browser. The list also has terminal versions of each command:
+   the offline demo, the live loop, approve and reject (they ask for the lead ID), status, and
+   the daily summary.
 4. The **Testing** panel finds and runs the pytest suite.
 
 ### Environment variables
@@ -100,6 +103,29 @@ copy .env.example .env
 
 There is no wallet key variable, by design. The desk exits with `refusing to start` if one
 is set.
+
+## Web dashboard
+
+```bash
+python main.py web            # opens http://127.0.0.1:8765 in your browser
+python main.py --demo web     # same, starting on the Demo tab
+```
+
+The dashboard runs the same code as the commands below, with buttons:
+
+- **Live / Demo tabs.** Live uses real market data; Demo uses the synthetic tokens. Each tab
+  has its own database.
+- **Run 1 cycle**, or **Start auto-run** every N seconds and **Stop** (it stops after the cycle
+  in progress).
+- **Approve / Reject** next to each staged lead, with a confirmation. Approve opens a paper
+  position at the stored quote; nothing is signed or sent.
+- Paper equity, open positions, recent leads with the reason each was rejected, the last run
+  summary, the audit log, and **Clear halt** (it asks why it is safe to resume).
+
+Because the page can approve leads, it answers only you. It listens on 127.0.0.1, refuses
+requests from any other host name or website, needs a random token that only the page itself
+holds, and cannot be embedded in another site. Stop it with Ctrl+C in its terminal. Use
+`--port` to pick another port and `--no-browser` to just print the address.
 
 ## Run the paper loop
 
@@ -232,8 +258,9 @@ The required cases are `test_halt.py` (a policy halt blocks new leads), `test_mi
 (a mint mismatch kills a lead), `test_risk_gate.py` (a Risk fail never reaches Sniper), and
 `test_approval.py` (paper approval needs no key; it also runs the CLI in a clean environment
 and asserts that the signer was never loaded). Other tests cover the policy loader, the key
-ban, prompts, handoff parsing, Exit triggers, the HTTP clients against mocked responses, and
-a full demo cycle.
+ban, prompts, handoff parsing, Exit triggers, the HTTP clients against mocked responses, a
+full demo cycle, and the dashboard (its buttons, and that it refuses other hosts, other
+websites, and requests without its token).
 
 ## Live trading is not in v1
 

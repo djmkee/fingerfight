@@ -4,6 +4,8 @@ In paper mode an approval only marks the lead paper_filled and opens a paper pos
 stored quote's price. It reads the database and nothing more: no tools, no key, no signer.
 """
 
+import getpass
+
 from .clock import parse_iso
 from .context import DeskContext
 from .db import Lead, Position, Status
@@ -17,6 +19,14 @@ _PLAN_FIELDS = ("expires_at", "output_mint", "entry_price_sol", "size_sol", "out
 
 class ApprovalError(RuntimeError):
     """The decision was refused; the lead is unchanged unless the message says otherwise."""
+
+
+def operator_name() -> str:
+    """Who is deciding, for the audit log."""
+    try:
+        return getpass.getuser()
+    except Exception:  # no login name in some containers
+        return "human"
 
 
 def _load(ctx: DeskContext, ref: str) -> Lead:

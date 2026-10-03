@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="desk-token" content="{{TOKEN}}">
+  <title>Paper desk</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body data-initial-mode="{{MODE}}">
+  <header class="top">
+    <div class="brand">
+      <h1>Paper desk</h1>
+      <span class="pill paper" title="Nothing is ever signed or sent">Paper only</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Data source">
+      <button class="tab" type="button" role="tab" data-mode="live">Live <span class="dot" hidden></span></button>
+      <button class="tab" type="button" role="tab" data-mode="demo">Demo <span class="dot" hidden></span></button>
+    </nav>
+  </header>
+
+  <main>
+    <div id="conn" class="banner error" hidden></div>
+    <p id="source" class="source"></p>
+
+    <section id="halt" class="banner halt" hidden>
+      <div>
+        <strong>Desk halted.</strong> <span id="halt-reason"></span>
+        <p class="hint">No new leads, quotes or fills until you clear it. Open positions are still managed.</p>
+      </div>
+      <div class="halt-actions">
+        <input id="halt-note" type="text" maxlength="300" placeholder="Why is it safe to resume?">
+        <button id="clear-halt" type="button" class="danger">Clear halt</button>
+      </div>
+    </section>
+
+    <section class="row">
+      <div class="card">
+        <h2>Paper equity</h2>
+        <div id="equity" class="big">–</div>
+        <div id="equity-detail" class="kv muted"></div>
+      </div>
+      <div class="card grow">
+        <h2>Run the pipeline</h2>
+        <div class="controls">
+          <button id="run-once" type="button" class="primary">Run 1 cycle</button>
+          <span class="loop">
+            <button id="run-loop" type="button">Start auto-run</button>
+            every <input id="interval" type="number" min="5" max="3600" step="5" value="60" aria-label="Seconds between cycles"> s
+          </span>
+          <button id="stop" type="button" class="danger-outline">Stop</button>
+        </div>
+        <p id="run-status" class="muted"></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Awaiting approval <span id="awaiting-count" class="count">0</span></h2>
+        <p class="muted">Approve opens a paper position at the stored quote. Nothing is signed or sent.</p>
+      </div>
+      <div class="table-wrap">
+        <table id="awaiting-table" hidden>
+          <thead><tr>
+            <th>Lead</th><th>Token</th><th class="num">Size</th><th class="num">Impact</th><th class="num">Sell impact</th>
+            <th class="num">Liquidity</th><th class="num">Age</th><th class="num">Top 10</th><th class="num">Expires in</th><th></th>
+          </tr></thead>
+          <tbody id="awaiting-body"></tbody>
+        </table>
+      </div>
+      <p id="awaiting-empty" class="empty">Nothing is waiting for a decision.</p>
+    </section>
+
+    <section class="card">
+      <h2>Open paper positions <span id="positions-count" class="count">0</span></h2>
+      <div class="table-wrap">
+        <table id="positions-table" hidden>
+          <thead><tr>
+            <th>Lead</th><th>Token</th><th class="num">Size</th><th class="num">Entry (SOL/token)</th>
+            <th class="num">Unrealized</th><th class="num">Opened</th><th class="num">Last check</th>
+          </tr></thead>
+          <tbody id="positions-body"></tbody>
+        </table>
+      </div>
+      <p id="positions-empty" class="empty">No open paper positions.</p>
+    </section>
+
+    <section class="card">
+      <h2>Recent leads</h2>
+      <div class="table-wrap">
+        <table id="leads-table" hidden>
+          <thead><tr>
+            <th>Lead</th><th>Token</th><th>Status</th><th class="num">Liquidity</th><th class="num">Age</th><th>Why</th>
+          </tr></thead>
+          <tbody id="leads-body"></tbody>
+        </table>
+      </div>
+      <p id="leads-empty" class="empty">No leads yet. Run a cycle to scan for candidates.</p>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Last run summary</h2>
+        <button id="daily" type="button">Daily summary</button>
+      </div>
+      <pre id="last-run" class="report">No run yet in this session.</pre>
+    </section>
+
+    <section class="card">
+      <h2>Audit log</h2>
+      <ol id="events" class="events"></ol>
+    </section>
+
+    <footer>
+      <p id="policy" class="muted"></p>
+      <p class="muted">Database: <span id="db" class="mono"></span></p>
+      <p class="muted">Paper mode: nothing is signed or sent. Paper fills use quoted prices and ignore fees,
+        latency, and failed sends; nothing here shows the strategy is profitable.</p>
+    </footer>
+  </main>
+
+  <dialog id="report-dialog">
+    <pre id="report-text" class="report"></pre>
+    <div class="dialog-actions"><button id="report-close" type="button" class="primary">Close</button></div>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

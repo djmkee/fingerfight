@@ -9,6 +9,11 @@ from .reporting import collect_stats, format_approvals, format_run_summary
 from .roles import Exit, Head, Risk, Search, Sniper
 
 
+def _sleep(seconds: float) -> bool:
+    time.sleep(seconds)
+    return False
+
+
 class Orchestrator:
     def __init__(self, ctx: DeskContext) -> None:
         self.ctx = ctx
@@ -43,16 +48,20 @@ class Orchestrator:
                 halted=ctx.db.is_halted())
 
     def loop(self, cycles: int | None, interval_s: float,
-             sleep: Callable[[float], None] = time.sleep) -> str:
-        """Run cycles until `cycles` is reached or Ctrl-C, then return the run summary."""
+             wait: Callable[[float], bool] = _sleep) -> str:
+        """Run cycles until `cycles` is reached, `wait` reports a stop, or Ctrl-C; return the summary.
+
+        `wait(seconds)` pauses between cycles and returns True to stop early (the dashboard's
+        Stop button); the default just sleeps.
+        """
         started = self.ctx.ts()
         done = 0
         try:
             while cycles is None or done < cycles:
                 self.run_cycle()
                 done += 1
-                if cycles is None or done < cycles:
-                    sleep(interval_s)
+                if (cycles is None or done < cycles) and wait(interval_s):
+                    break
         except KeyboardInterrupt:
             self.ctx.echo("\ninterrupted; stopping the paper loop")
         ended = self.ctx.ts()

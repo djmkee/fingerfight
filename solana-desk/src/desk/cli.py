@@ -1,14 +1,13 @@
 """Command line: run the paper loop, decide on staged leads, and inspect the desk."""
 
 import argparse
-import getpass
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
-from .approval import ApprovalError, approve, reject
+from .approval import ApprovalError, approve, operator_name, reject
 from .clock import utcnow
 from .context import DeskContext
 from .db import DeskDB
@@ -23,6 +22,7 @@ from .roles import Head
 from .settings import load_settings
 from .tools import live_toolbox
 from .tools.fixture import fixture_toolbox, load_specs
+from .web import DashboardApp, DashboardError, Desk, serve
 
 DEMO_FIXTURE = "fixtures/demo_market.json"
 DEMO_DB = "data/demo.sqlite3"
@@ -55,13 +55,6 @@ def open_desk(args: argparse.Namespace, *, with_tools: bool) -> Iterator[DeskCon
         ctx.db.close()
 
 
-def _operator() -> str:
-    try:
-        return getpass.getuser()
-    except Exception:  # no login name in some containers
-        return "human"
-
-
 def cmd_run(args: argparse.Namespace) -> int:
     with open_desk(args, with_tools=True) as ctx:
         data = ("SYNTHETIC fixtures (fixtures/demo_market.json), not market data" if args.demo
@@ -76,13 +69,13 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 def cmd_approve(args: argparse.Namespace) -> int:
     with open_desk(args, with_tools=False) as ctx:
-        approve(ctx, args.lead, by=_operator())
+        approve(ctx, args.lead, by=operator_name())
     return 0
 
 
 def cmd_reject(args: argparse.Namespace) -> int:
     with open_desk(args, with_tools=False) as ctx:
-        reject(ctx, args.lead, by=_operator())
+        reject(ctx, args.lead, by=operator_name())
     return 0
 
 
@@ -105,7 +98,7 @@ def cmd_clear_halt(args: argparse.Namespace) -> int:
             print("the desk is not halted")
             return 0
         reason = ctx.db.halt_reason()
-        Head(ctx).clear_halt(by=_operator(), note=args.reason)
+        Head(ctx).clear_halt(by=operator_name(), note=args.reason)
     print(f"halt cleared (was: {reason}); the daily loss limit now counts from current paper equity")
     return 0
 
@@ -116,6 +109,32 @@ def cmd_events(args: argparse.Namespace) -> int:
         for row in ctx.db.events(lead_id=lead_id, limit=args.limit):
             lead = f"LEAD-{row['lead_id']}" if row["lead_id"] is not None else "-"
             print(f"{row['timestamp']}  {lead:<9} {row['role']:<12} {row['action']:<18} {row['payload']}")
+    return 0
+
+
+def cmd_web(args: argparse.Namespace) -> int:
+    root: Path = args.root
+    settings = load_settings(root)
+    policy = load_policy(settings.policy_path)
+    live_db = args.db if args.db and not args.demo else settings.db_path
+    demo_db = args.db if args.db and args.demo else root / DEMO_DB
+    app = DashboardApp(
+        policy=policy,
+        prompts=PromptBook(root / "prompts"),
+        llm=LLMClient.from_settings(settings),
+        desks={
+            "live": Desk("live", "Live market data from DexScreener, Jupiter quotes and Solana RPC, paper trading",
+                         live_db, live_toolbox(settings), "python main.py"),
+            "demo": Desk("demo", "Synthetic demo tokens from fixtures/demo_market.json, not market data",
+                         demo_db, fixture_toolbox(load_specs(root / DEMO_FIXTURE), utcnow()), "python main.py --demo"),
+        },
+        initial_mode="demo" if args.demo else "live",
+    )
+    try:
+        serve(app, port=args.port, open_browser=not args.no_browser)
+    except DashboardError as exc:
+        print(f"cannot start the dashboard: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -147,6 +166,11 @@ def build_parser(default_root: Path) -> argparse.ArgumentParser:
     clear = commands.add_parser("clear-halt", help="human-only: clear a daily-loss or failed-send halt")
     clear.add_argument("--reason", required=True, help="why it is safe to resume (logged)")
     clear.set_defaults(handler=cmd_clear_halt)
+
+    web = commands.add_parser("web", help="open the local dashboard: buttons to run, approve, and reject")
+    web.add_argument("--port", type=int, default=8765, help="local port (default 8765)")
+    web.add_argument("--no-browser", action="store_true", help="print the address instead of opening a browser")
+    web.set_defaults(handler=cmd_web)
 
     events = commands.add_parser("events", help="print the audit log")
     events.add_argument("--lead", help="only events for this lead, e.g. LEAD-12")
