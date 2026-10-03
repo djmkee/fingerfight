@@ -1,0 +1,17 @@
+{
+  "_note": "SYNTHETIC tokens for `python main.py --demo` and the tests. Not market data. Mints are base58(sha256('demo-mint:<symbol>')); every row this produces is tagged fixture/... as its source.",
+  "tokens": [
+    {"symbol": "DLOWLIQ", "liquidity_usd": 4200, "age_minutes": 45},
+    {"symbol": "DBABY", "liquidity_usd": 31000, "age_minutes": 2},
+    {"symbol": "DNOAGE", "liquidity_usd": 52000, "age_minutes": null},
+    {"symbol": "DQUOTESIDE", "listed_as_base": false},
+    {"symbol": "DMINTAUTH", "liquidity_usd": 88000, "age_minutes": 40, "mint_authority": true},
+    {"symbol": "DFREEZE", "liquidity_usd": 64000, "age_minutes": 75, "freeze_authority": true},
+    {"symbol": "DWHALE", "liquidity_usd": 120000, "age_minutes": 300, "top10_pct": 64.5},
+    {"symbol": "DHOOK", "liquidity_usd": 47000, "age_minutes": 25, "token_program": "spl-token-2022", "extensions": ["metadataPointer", "transferHook"]},
+    {"symbol": "DTHIN", "liquidity_usd": 16500, "age_minutes": 18, "buy_impact_pct": 7.5},
+    {"symbol": "DNOSELL", "liquidity_usd": 26000, "age_minutes": 33, "sell_route": false},
+    {"symbol": "DSTEADY", "liquidity_usd": 210000, "age_minutes": 480, "top10_pct": 21.4, "tokens_per_sol": 2500000, "buy_impact_pct": 0.6, "sell_impact_pct": 0.7, "dex_id": "pumpswap"},
+    {"symbol": "DNOHOLDERS", "liquidity_usd": 38000, "age_minutes": 95, "top10_pct": null, "token_program": "spl-token-2022", "extensions": ["metadataPointer", "tokenMetadata"], "buy_impact_pct": 1.4, "sell_impact_pct": 1.6, "dex_id": "meteora"}
+  ]
+}

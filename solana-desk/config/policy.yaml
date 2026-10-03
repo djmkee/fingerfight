@@ -1,0 +1,49 @@
+# Risk policy for the paper desk.
+# Loaded once at startup by src/desk/policy.py and enforced in code. Prompts get a
+# copy of these numbers for context, but no LLM reply can loosen them.
+# Unknown keys are rejected, so a typo cannot silently drop a limit.
+
+paper_mode: true                  # v1 is paper-only: the desk refuses to start if this is false
+
+# Sizing and exposure (spot only, no leverage)
+paper_equity_sol: 10              # simulated bankroll; proposed size = max_position_pct of equity
+max_position_pct: 3
+max_open_positions: 4
+
+# Halts: either limit sets halted=true, and only `python main.py clear-halt` resets it
+daily_loss_halt_pct: 10           # realized + unrealized paper loss vs start-of-day equity
+max_failed_sends: 3               # per UTC day; v1 never sends, the future live path counts here
+
+# Search filters (a candidate must pass these before it becomes a lead)
+min_liquidity_usd: 15000
+min_token_age_minutes: 5          # pair age from DexScreener, a lower bound on token age
+max_new_leads_per_cycle: 8
+lead_cooldown_hours: 24           # a mint is not re-emitted while it has a lead this recent
+
+# Risk checks
+reject_mint_authority_active: true    # required in v1
+reject_freeze_authority_set: true     # required in v1
+max_top10_holder_pct: 30              # applied only when holder data exists
+blocked_token2022_extensions:         # Token-2022 features that can seize, block, or tax transfers
+  - permanentDelegate
+  - transferHook
+  - transferFeeConfig
+  - nonTransferable
+  - defaultAccountState
+  - pausableConfig
+pool_authorities:                     # owners of AMM vault accounts, left out of the top-10 math
+  - 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1   # Raydium AMM v4 authority
+  - GpMZbSM2GgvTKHJirzeGfMFoaZ8UR2X7F4v8vHTvxFbL   # Raydium CPMM authority
+
+# Quotes (Sniper) and the human gate
+max_price_impact_pct: 3
+slippage_bps: 100
+approval_ttl_minutes: 10          # a staged quote older than this expires instead of filling
+
+# Exit role (paper positions)
+exit:
+  check_interval_minutes: 3
+  liquidity_drop_pct: 30          # vs liquidity when the lead was discovered
+  max_exit_impact_pct: 6          # exit-quote price impact above this is an impact spike
+  time_stop_minutes: 240
+  max_recheck_failures: 2         # this many failed rechecks in a row count as the matching trigger

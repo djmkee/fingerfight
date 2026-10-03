@@ -1,0 +1,6 @@
+"""Solana constants the desk relies on."""
+
+SOL_MINT = "So11111111111111111111111111111111111111112"  # wrapped SOL: the input of every buy
+LAMPORTS_PER_SOL = 1_000_000_000
+TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
