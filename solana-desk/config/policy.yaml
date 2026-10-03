@@ -1,18 +1,30 @@
-# Risk policy for the paper desk.
-# Loaded once at startup by src/desk/policy.py and enforced in code. Prompts get a
-# copy of these numbers for context, but no LLM reply can loosen them.
-# Unknown keys are rejected, so a typo cannot silently drop a limit.
+# Risk policy for the desk.
+# Loaded by src/desk/policy.py and enforced in code. The signer process reads this same file
+# and re-checks the trading limits before it signs anything. Prompts get a copy of these
+# numbers for context, but no LLM reply can loosen them. Unknown keys are rejected, so a
+# typo cannot silently drop a limit.
 
-paper_mode: true                  # v1 is paper-only: the desk refuses to start if this is false
+# paper:   book entries at quoted prices; nothing touches a wallet.
+# dry_run: the signer builds, signs and simulates real swaps against Solana but sends nothing.
+# live:    real swaps with real SOL from the trading wallet.
+trading_mode: dry_run
+
+# Who approves staged trades
+auto_approve: true                # false: you approve each trade in the dashboard
+decider: ai                       # ai: the LLM picks among leads that passed every coded check
+                                  # rules: buy them all, deepest liquidity first
 
 # Sizing and exposure (spot only, no leverage)
-paper_equity_sol: 10              # simulated bankroll; proposed size = max_position_pct of equity
-max_position_pct: 3
+paper_equity_sol: 10              # bankroll for paper mode; dry_run and live use the wallet balance
+max_position_pct: 3               # size = this % of equity ...
+max_trade_sol: 0.05               # ... but never more than this per trade
 max_open_positions: 4
+max_buys_per_day: 20
 
-# Halts: either limit sets halted=true, and only `python main.py clear-halt` resets it
-daily_loss_halt_pct: 10           # realized + unrealized paper loss vs start-of-day equity
-max_failed_sends: 3               # per UTC day; v1 never sends, the future live path counts here
+# Halts: each sets halted=true; only a human clears it (dashboard or `python main.py clear-halt`)
+daily_loss_halt_pct: 20           # loss vs start-of-day equity, open positions marked at exit quotes
+max_failed_sends: 3               # transactions sent that failed or never landed, per UTC day
+order_timeout_seconds: 120        # an order the signer has not picked up by then expires
 
 # Search filters (a candidate must pass these before it becomes a lead)
 min_liquidity_usd: 15000
@@ -21,8 +33,8 @@ max_new_leads_per_cycle: 8
 lead_cooldown_hours: 24           # a mint is not re-emitted while it has a lead this recent
 
 # Risk checks
-reject_mint_authority_active: true    # required in v1
-reject_freeze_authority_set: true     # required in v1
+reject_mint_authority_active: true    # required
+reject_freeze_authority_set: true     # required
 max_top10_holder_pct: 30              # applied only when holder data exists
 blocked_token2022_extensions:         # Token-2022 features that can seize, block, or tax transfers
   - permanentDelegate
@@ -35,12 +47,12 @@ pool_authorities:                     # owners of AMM vault accounts, left out o
   - 5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1   # Raydium AMM v4 authority
   - GpMZbSM2GgvTKHJirzeGfMFoaZ8UR2X7F4v8vHTvxFbL   # Raydium CPMM authority
 
-# Quotes (Sniper) and the human gate
+# Quotes (Sniper) and approvals
 max_price_impact_pct: 3
 slippage_bps: 100
 approval_ttl_minutes: 10          # a staged quote older than this expires instead of filling
 
-# Exit role (paper positions)
+# Exit role
 exit:
   check_interval_minutes: 3
   liquidity_drop_pct: 30          # vs liquidity when the lead was discovered

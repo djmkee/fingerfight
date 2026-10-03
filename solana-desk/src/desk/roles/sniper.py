@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
+from .. import execution
 from ..clock import iso
 from ..constants import LAMPORTS_PER_SOL, SOL_MINT
 from ..db import Lead, Status
@@ -75,8 +76,7 @@ class Sniper(Role):
             if lead.risk_status != "pass":
                 self.reject(lead, "integrity", f"risk_status is {lead.risk_status!r}, not 'pass'")
                 continue
-            free = (self.policy.max_open_positions - self.db.count_open_positions()
-                    - self.db.count_leads(Status.AWAITING) - len(staged))
+            free = execution.free_slots(self.ctx) - self.db.count_leads(Status.AWAITING) - len(staged)
             if free <= 0:
                 self.reject(lead, "no_slot", f"no free position slot (max_open_positions={self.policy.max_open_positions})")
                 continue
@@ -107,11 +107,18 @@ class Sniper(Role):
 
     def plan(self, lead: Lead) -> Plan:
         """Size from policy, then quote the buy and a sell of the same tokens. Raises on bad data."""
-        size_sol = round(self.ctx.equity_sol() * self.policy.max_position_pct / 100, 9)
-        plan = Plan(size_sol=size_sol, size_lamports=int(round(size_sol * LAMPORTS_PER_SOL)))
+        size_sol = execution.position_size_sol(self.ctx)
+        plan = Plan(size_sol=size_sol or 0.0, size_lamports=int(round((size_sol or 0.0) * LAMPORTS_PER_SOL)))
+        if size_sol is None:
+            plan.problems.append(("sizing", "wallet balance unknown; the signer reports it while it runs"))
+            return plan
+        if size_sol < execution.MIN_TRADE_SOL:
+            plan.problems.append(("sizing", f"position size {size_sol:g} SOL is below the "
+                                            f"{execution.MIN_TRADE_SOL:g} SOL minimum; fund the wallet"))
+            return plan
         decimals = lead.authorities().get("decimals")
-        if not isinstance(decimals, int) or plan.size_lamports <= 0:
-            plan.problems.append(("sizing", "token decimals or position size unavailable"))
+        if not isinstance(decimals, int):
+            plan.problems.append(("sizing", "token decimals unavailable"))
             return plan
         plan.decimals = decimals
 

@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "solana-paper-desk"
-version = "0.1.0"
-description = "Paper-only Solana memecoin desk run as a multi-role pipeline with a human approval gate."
+version = "0.2.0"
+description = "Solana memecoin desk run as a multi-role pipeline: paper, dry run, or live through a separate signer."
 requires-python = ">=3.12"
 dependencies = ["httpx>=0.27", "PyYAML>=6.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "solders>=0.21"]
+live = ["solders>=0.21"]   # the signer only; the desk never imports it
 
 [tool.setuptools.packages.find]
 where = ["src"]

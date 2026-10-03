@@ -9,4 +9,4 @@ Reply with one line per position, stage "exit":
   time_stop: held_minutes >= policy.exit.time_stop_minutes;
 - result "hold" otherwise.
 
-Use no other exit reasons. In paper mode, code closes the paper position at the exit quote and logs it; nothing is sent.
+Use no other exit reasons. Code carries out the exit: a book entry at the exit quote in paper and dry-run modes, or a sell order that the separate signer executes in live mode.

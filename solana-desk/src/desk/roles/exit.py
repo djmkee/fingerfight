@@ -1,7 +1,8 @@
-"""Exit: every few minutes, re-check open paper positions and close them on a trigger.
+"""Exit: every few minutes, re-check open positions and get out on a trigger.
 
-Triggers: liquidity drop, impact spike, authority change, time stop. In paper mode a close is
-a bookkeeping entry at the executable exit quote (zero if there is none); nothing is sent.
+Triggers: liquidity drop, impact spike, authority change, time stop. Paper and dry-run positions
+close as book entries at the executable exit quote (zero if there is none). A live position holds
+real tokens, so a trigger places a sell order that the signer executes; it closes when that fills.
 """
 
 import json
@@ -9,6 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
+from .. import execution
 from ..clock import parse_iso
 from ..constants import LAMPORTS_PER_SOL, SOL_MINT
 from ..db import Lead, Position, Status
@@ -64,10 +66,16 @@ class Exit(Role):
         now = self.ctx.now()
         checks: list[Recheck] = []
         for position in self.db.positions(open_only=True):
-            if not self._due(position, now):
-                continue
+            if position.sell_order_id is not None:
+                continue  # a sell order is already with the signer
             lead = self.db.get_lead(position.lead_id)
             assert lead is not None
+            if lead.status == Status.DEAD:  # its data cannot be trusted; just get out
+                if position.mode == "live":
+                    execution.place_sell(self.ctx, position, "lead_dead: a stage saw a different mint")
+                continue
+            if not self._due(position, now):
+                continue
             try:
                 checks.append(self.recheck(lead, position, now))
             except MintMismatch as exc:
@@ -160,22 +168,43 @@ class Exit(Role):
 
     def close(self, check: Recheck) -> None:
         position, lead = check.position, check.lead
+        reason = "; ".join(check.triggers)
+        if position.mode == "live":
+            self._sell(check, reason)
+            return
         proceeds = check.proceeds_sol or 0.0  # no executable exit quote: value the tokens at zero
         tokens = int(position.token_amount) / 10**position.token_decimals
         realized = proceeds - position.size_sol
-        reason = "; ".join(check.triggers)
         ts = self.ctx.ts()
         with self.db.tx():
             if not self.db.close_position(lead.lead_id, ts=ts, paper_exit=proceeds / tokens if tokens else 0.0,
                                           realized_sol=realized, exit_reason=reason):
                 return
-            self.db.transition(lead.lead_id, Status.PAPER_FILLED, Status.PAPER_CLOSED, ts,
+            self.db.transition(lead.lead_id, Status.FILLED, Status.CLOSED, ts,
                                recheck_json=check.evidence(ts))
             self.log("paper_close", lead.lead_id, exit_reason=reason, proceeds_sol=proceeds,
                      cost_sol=position.size_sol, realized_sol=realized,
                      exit_quote=check.exit_quote.raw if check.exit_quote else None)
             self.handoff(lead, "exit", f"{reason}; proceeds_sol={proceeds:.6f} cost_sol={position.size_sol:.6f} "
-                                       f"realized_sol={realized:+.6f} (paper)")
+                                       f"realized_sol={realized:+.6f} ({position.mode})")
+
+    def _sell(self, check: Recheck, reason: str) -> None:
+        """Live: record the recheck, then hand the signer a sell order for the whole position."""
+        position, ts = check.position, self.ctx.ts()
+        with self.db.tx():
+            self.db.update_position(position.lead_id, last_checked_at=ts, unrealized=self._mark(check),
+                                    recheck_failures=position.recheck_failures + 1 if check.failures else 0)
+            self.db.update_lead(position.lead_id, ts, recheck_json=check.evidence(ts))
+            execution.place_sell(self.ctx, position, reason)
+        self.handoff(check.lead, "exit", f"{reason}; sell order placed for the signer (live)")
+
+    @staticmethod
+    def _mark(check: Recheck) -> float:
+        """Unrealized SOL at the exit quote. A live position nobody can quote is marked at zero."""
+        position = check.position
+        if check.proceeds_sol is not None:
+            return check.proceeds_sol - position.size_sol
+        return -position.size_sol if position.mode == "live" else position.unrealized
 
     def hold(self, check: Recheck) -> None:
         position = check.position
@@ -184,8 +213,7 @@ class Exit(Role):
             "last_checked_at": ts,
             "recheck_failures": position.recheck_failures + 1 if check.failures else 0,
         }
-        if check.proceeds_sol is not None:
-            fields["unrealized"] = check.proceeds_sol - position.size_sol
+        fields["unrealized"] = self._mark(check)
         with self.db.tx():
             self.db.update_position(position.lead_id, **fields)
             self.db.update_lead(position.lead_id, ts, recheck_json=check.evidence(ts))

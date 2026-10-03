@@ -158,7 +158,7 @@ def test_rpc_top10_excludes_pool_vault_owners():
     client = rpc({
         "getTokenLargestAccounts": {"context": {"slot": 1}, "value": largest},
         "getMultipleAccounts": {"context": {"slot": 1}, "value": [
-            token_account(MINT_A, owner, row["amount"]) for owner, row in zip(owners, largest)]},
+            token_account(MINT_A, owner, row["amount"]) for owner, row in zip(owners, largest, strict=True)]},
     })
     holders = client.holders(MINT_A, supply=1000, exclude_owners=frozenset({POOL_AUTHORITY}))
     assert holders.raw_top10_pct == pytest.approx(68.0)   # 400+100+50+40+30+20+10+10+10+10

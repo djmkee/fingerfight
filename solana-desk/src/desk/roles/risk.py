@@ -41,7 +41,7 @@ def evaluate(lead: Lead, policy: Policy) -> tuple[list[Failure], list[str]]:
         floor = policy.min_token_age_minutes
         check(age >= floor, "age", f"age {age:.1f}m < {floor:g}m", f"age {age:.1f}m >= {floor:g}m")
 
-    # The policy loader guarantees both authority rejections are on in v1.
+    # The policy loader guarantees both authority rejections are on.
     mint = lead.authorities()
     if not all(name in mint for name in _MINT_FIELDS) or not isinstance(mint["extensions"], list):
         failures.append(("mint_data", "mint account data missing from the lead row"))

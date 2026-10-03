@@ -57,18 +57,33 @@ def test_agent_code_never_imports_the_signer_or_a_signing_library():
             assert not {name.split(".")[0] for name in names} & banned, f"{path} imports {names}"
 
 
-def test_signer_placeholder_refuses():
-    from signer.placeholder import LiveTradingDisabled, sign_and_send
+def test_only_the_signer_imports_a_signing_library():
+    code = [*sorted((ROOT / "src").rglob("*.py")), ROOT / "main.py", ROOT / "signer.py"]
+    signer_dir = ROOT / "src" / "signer"
+    for path in code:
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                names = [node.module or ""]
+            else:
+                continue
+            if any(name.split(".")[0] == "solders" for name in names):
+                assert signer_dir in path.parents, f"{path} imports solders"
 
-    with pytest.raises(LiveTradingDisabled, match="paper mode only"):
-        sign_and_send(1)
+
+def test_agent_code_never_names_the_wallet_file_or_the_signer_settings():
+    for path in AGENT_CODE:
+        text = path.read_text()
+        for name in ("signer.yaml", "wallet.json", ".solana-desk", "load_wallet", "keypair_path"):
+            assert name not in text, f"{path} mentions {name}"
 
 
 def test_no_key_material_is_embedded_in_code_prompts_or_config():
     keypair_array = re.compile(r"\[\s*(?:\d{1,3}\s*,\s*){63}\d{1,3}\s*\]")   # a Solana keypair file
     secret_base58 = re.compile(r"\b[1-9A-HJ-NP-Za-km-z]{80,90}\b")          # a base58 64-byte secret
     files = [*AGENT_CODE, *sorted((ROOT / "src" / "signer").rglob("*.py")), *sorted((ROOT / "prompts").glob("*.md")),
-             ROOT / "config" / "policy.yaml", ROOT / ".env.example"]
+             ROOT / "config" / "policy.yaml", ROOT / "config" / "signer.yaml", ROOT / ".env.example", ROOT / "signer.py"]
     for path in files:
         text = path.read_text()
         assert not keypair_array.search(text), path

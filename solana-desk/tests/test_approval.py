@@ -42,10 +42,11 @@ def test_paper_approve_needs_no_key_and_fills_at_the_quoted_price(make_desk):
     position = approve(ctx, lead.ref, by="tester")
 
     lead = ctx.db.get_lead(lead.lead_id)
-    assert (lead.status, lead.human_decision, lead.tx_sig) == (Status.PAPER_FILLED, "approve", None)
+    assert (lead.status, lead.human_decision, lead.tx_sig) == (Status.FILLED, "approve", None)
     assert position.is_open and position.mint == spec.mint
     assert position.paper_entry == pytest.approx(plan["entry_price_sol"])
-    assert position.size_sol == pytest.approx(ctx.policy.paper_equity_sol * ctx.policy.max_position_pct / 100)
+    expected_size = min(ctx.policy.paper_equity_sol * ctx.policy.max_position_pct / 100, ctx.policy.max_trade_sol)
+    assert position.size_sol == pytest.approx(expected_size)
     assert position.token_amount == plan["out_amount"]
     expected_price = (int(plan["in_amount"]) / LAMPORTS_PER_SOL) / (int(plan["out_amount"]) / 10**plan["token_decimals"])
     assert position.paper_entry == pytest.approx(expected_price)
@@ -83,7 +84,7 @@ def test_cli_paper_approve_runs_in_a_clean_environment_without_the_signer(tmp_pa
     )
     result = subprocess.run([sys.executable, "-c", probe], env=env, capture_output=True, text=True, timeout=120)
     assert result.returncode == 0, result.stderr
-    assert query_one(db, "SELECT status FROM leads WHERE lead_id = ?", lead_id) == Status.PAPER_FILLED
+    assert query_one(db, "SELECT status FROM leads WHERE lead_id = ?", lead_id) == Status.FILLED
 
 
 def test_reject_closes_the_lead(make_desk):

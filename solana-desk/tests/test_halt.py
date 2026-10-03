@@ -33,7 +33,7 @@ def test_failed_send_limit_halts_and_blocks_new_leads(make_desk):
 
 def test_daily_loss_halts_search_and_approvals(make_desk, clock):
     crashing, newcomer = TokenSpec("CRASH"), TokenSpec("LATE")
-    ctx = make_desk([crashing, TokenSpec("SPARE")], daily_loss_halt_pct=2.0)
+    ctx = make_desk([crashing, TokenSpec("SPARE")], daily_loss_halt_pct=2.0, max_trade_sol=1.0)
     desk = Orchestrator(ctx)
     desk.run_cycle()
     approve(ctx, lead_for(ctx, crashing).ref)          # 0.3 SOL paper position

@@ -19,6 +19,10 @@ def _number(value: Any) -> float | None:
         return None
 
 
+def _count(value: Any) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
 def parse_pair(raw: Any, source: str) -> PairSnapshot | None:
     """Normalize one DexScreener pair object; None if it is not a usable Solana pair."""
     try:
@@ -26,6 +30,8 @@ def parse_pair(raw: Any, source: str) -> PairSnapshot | None:
             return None
         base, quote = raw["baseToken"], raw["quoteToken"]
         created = raw.get("pairCreatedAt")
+        volume, change = raw.get("volume") or {}, raw.get("priceChange") or {}
+        txns_h1 = (raw.get("txns") or {}).get("h1") or {}
         return PairSnapshot(
             pair_address=str(raw["pairAddress"]),
             dex_id=str(raw.get("dexId") or ""),
@@ -37,9 +43,15 @@ def parse_pair(raw: Any, source: str) -> PairSnapshot | None:
             pair_created_at=(datetime.fromtimestamp(created / 1000, UTC)
                              if isinstance(created, int | float) and created > 0 else None),
             price_usd=_number(raw.get("priceUsd")),
-            volume_h24_usd=_number((raw.get("volume") or {}).get("h24")),
+            volume_h24_usd=_number(volume.get("h24")),
             url=raw.get("url"),
             source=source,
+            volume_h1_usd=_number(volume.get("h1")),
+            price_change_h1_pct=_number(change.get("h1")),
+            price_change_h24_pct=_number(change.get("h24")),
+            buys_h1=_count(txns_h1.get("buys")),
+            sells_h1=_count(txns_h1.get("sells")),
+            fdv_usd=_number(raw.get("fdv")),
         )
     except (AttributeError, KeyError, TypeError, ValueError, OverflowError, OSError):
         return None

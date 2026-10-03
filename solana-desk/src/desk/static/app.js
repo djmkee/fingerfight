@@ -34,6 +34,17 @@ const pct = (value) => (missing(value) ? "–" : `${fixed(value, 2)}%`);
 const usd = (value) => (missing(value) ? "–" : `$${Math.round(value).toLocaleString("en-US")}`);
 const tone = (value) => (value > 0 ? "pos" : value < 0 ? "neg" : "");
 const timeOf = (iso) => (iso ? new Date(iso).toLocaleTimeString([], { hour12: false }) : "–");
+const MODE_LABEL = { paper: "Paper", dry_run: "Dry run", live: "Live" };
+const APPROVE_HINT = {
+  paper: "Approve opens a paper position at the stored quote. Nothing is signed or sent.",
+  dry_run: "Approve gives the signer a buy order; it builds, signs and simulates it on Solana. Nothing is sent.",
+  live: "Approve gives the signer a real buy order for the size shown.",
+};
+const DISCLAIMER = {
+  paper: "Paper mode: nothing is signed or sent. Paper fills use quoted prices and ignore fees, latency, and failed sends; nothing here shows the strategy is profitable.",
+  dry_run: "Dry run: real swaps are built, signed and simulated on Solana but never sent. Simulated fills are not evidence that the strategy is profitable.",
+  live: "Live: trades spend real SOL from the trading wallet. Past fills are not evidence that the strategy is profitable.",
+};
 
 function age(minutes) {
   if (missing(minutes)) return "–";
@@ -132,6 +143,10 @@ function copyText(text) {
   );
 }
 
+function shortAddress(address) {
+  return `${address.slice(0, 4)}…${address.slice(-4)}`;
+}
+
 function tokenCell(item) {
   const cell = el("div", { class: "token" },
     el("span", { class: "symbol" }, item.symbol || "?"),
@@ -168,9 +183,13 @@ function render() {
     tab.querySelector(".dot").hidden = !state.running[tab.dataset.mode];
   }
   section("source", [state.mode, state.label, state.llm, state.db, state.policy], drawSource);
+  section("tradingMode", [state.trading_mode, state.limits], drawTradingMode);
   section("halt", [state.halted, state.halt_reason], drawHalt);
-  section("equity", state.equity, drawEquity);
+  section("equity", [state.equity, state.trading_mode], drawEquity);
+  section("wallet", [state.signer, state.trading_mode], drawWallet);
+  section("auto", [state.auto, state.trading_mode], drawAuto);
   drawRun();
+  section("orders", [state.orders, state.limits, state.trading_mode], drawOrders);
   section("awaiting", state.awaiting, drawAwaiting);
   section("positions", state.positions, drawPositions);
   section("leads", state.leads, drawLeads);
@@ -195,12 +214,105 @@ function drawHalt([halted, reason]) {
   $("halt-reason").textContent = reason || "";
 }
 
-function drawEquity(equity) {
-  $("equity").textContent = sol(equity.total);
-  $("equity-detail").replaceChildren(
-    el("div", {}, el("span", {}, "Start"), el("span", {}, sol(equity.start))),
+function drawEquity([equity, tradingMode]) {
+  $("equity").textContent = equity.total == null ? "unknown" : sol(equity.total);
+  const first = tradingMode === "paper"
+    ? el("div", {}, el("span", {}, "Paper bankroll"), el("span", {}, sol(equity.start)))
+    : el("div", {}, el("span", {}, "Basis"), el("span", {}, tradingMode === "live" ? "wallet + positions" : "wallet + simulated"));
+  $("equity-detail").replaceChildren(first,
     el("div", {}, el("span", {}, "Realized"), el("span", { class: tone(equity.realized) }, signedSol(equity.realized))),
     el("div", {}, el("span", {}, "Unrealized"), el("span", { class: tone(equity.unrealized) }, signedSol(equity.unrealized))));
+  if (equity.total == null) {
+    $("equity-detail").append(el("p", { class: "warn-text" }, "Waiting for the signer to report the wallet balance."));
+  }
+}
+
+function drawTradingMode([tradingMode, limits]) {
+  const badge = $("mode-badge");
+  badge.textContent = MODE_LABEL[tradingMode] || tradingMode;
+  badge.className = `pill mode-${tradingMode}`;
+  $("approve-hint").textContent = APPROVE_HINT[tradingMode] || "";
+  $("disclaimer").textContent = DISCLAIMER[tradingMode] || "";
+  const banner = $("mode-banner");
+  banner.hidden = tradingMode === "paper";
+  banner.className = `banner ${tradingMode}`;
+  if (tradingMode === "dry_run") {
+    banner.replaceChildren(el("strong", {}, "Dry run. "),
+      "Real quotes; real swap transactions are built, signed and simulated on Solana, but nothing is sent. ",
+      el("p", {}, "When the log looks right, set ", el("code", {}, "trading_mode: live"), " in ",
+        el("code", {}, "config/policy.yaml"), " and restart the dashboard."));
+  } else if (tradingMode === "live") {
+    banner.replaceChildren(el("strong", {}, "Live. "),
+      `Trades spend real SOL from the trading wallet, at most ${limits.max_trade_sol} SOL each. `,
+      el("p", {}, "Halt trading now stops new buys at once; open positions are still sold on their exit triggers."));
+  }
+}
+
+function drawWallet([signer, tradingMode]) {
+  const card = $("wallet-card");
+  card.hidden = signer == null;
+  $("top-row").classList.toggle("no-wallet", signer == null);
+  if (signer == null) return;
+  const line = (label, value, cls = "") => el("div", { class: "wallet-line" }, el("span", { class: "muted" }, label),
+    el("span", { class: `value ${cls}` }, value));
+  const rows = [];
+  if (signer.wallet) {
+    const address = el("span", {}, el("span", { class: "mono", title: signer.wallet }, shortAddress(signer.wallet)), " ",
+      el("button", { class: "link", type: "button", onclick: () => copyText(signer.wallet) }, "copy"), " ",
+      el("a", { href: `https://solscan.io/account/${encodeURIComponent(signer.wallet)}`, target: "_blank", rel: "noopener noreferrer" }, "solscan"));
+    rows.push(line("Address", address), line("Balance", signer.wallet_sol == null ? "–" : sol(signer.wallet_sol)));
+  }
+  const process = signer.process || {};
+  let health;
+  if (signer.online) health = ["online, " + (MODE_LABEL[signer.mode] || signer.mode || "?"), "good-text"];
+  else if (process.started && !process.running) health = [`stopped (exit code ${process.exit_code}); see the terminal`, "bad-text"];
+  else if (process.running) health = ["starting…", "warn-text"];
+  else health = ["not running", "bad-text"];
+  rows.push(line("Signer", health[0], health[1]));
+  if (signer.online && signer.mode !== tradingMode) {
+    rows.push(el("p", { class: "bad-text" }, `The signer runs in ${signer.mode} mode but the policy says ${tradingMode}. Restart the dashboard.`));
+  }
+  if (signer.error) rows.push(el("p", { class: "bad-text" }, signer.error));
+  if (!signer.online) {
+    rows.push(el("ol", { class: "setup" },
+      el("li", {}, "Install: ", el("code", {}, 'pip install -e ".[live]"')),
+      el("li", {}, "Create the wallet: ", el("code", {}, "python signer.py init")),
+      el("li", {}, "Send it a small amount of SOL from your main wallet."),
+      el("li", {}, "Then ", el("button", { class: "link", type: "button", onclick: () => act("/api/signer/start", {}) }, "start the signer"),
+        " or restart the dashboard.")));
+  }
+  $("wallet").replaceChildren(...rows);
+}
+
+function drawAuto([auto, tradingMode]) {
+  const box = $("auto-status");
+  if (!auto.approve) {
+    box.replaceChildren("Auto-approve is off: approve or reject staged trades below.");
+    return;
+  }
+  const who = auto.decider === "ai" ? "the AI picks among leads that passed every check" : "every lead that passes every check is bought";
+  const parts = [`Auto-approve is on: ${who}, within your limits (${MODE_LABEL[tradingMode] || tradingMode}).`];
+  if (auto.decider === "ai" && !auto.llm) {
+    parts.push(" ", el("span", { class: "bad-text" }, "No LLM is configured, so nothing will be bought: set LLM_BASE_URL, LLM_API_KEY and LLM_MODEL in .env, or set decider: rules."));
+  }
+  box.replaceChildren(...parts);
+}
+
+function drawOrders([orders, limits, tradingMode]) {
+  $("orders-card").hidden = tradingMode === "paper";
+  if (tradingMode === "paper") return;
+  $("limits").textContent = `Buys today ${limits.buys_today}/${limits.max_buys_per_day} · failed sends today `
+    + `${limits.failed_sends_today}/${limits.max_failed_sends} · max ${limits.max_trade_sol} SOL per trade`;
+  fillTable("orders", orders.map((order) => el("tr", {},
+    el("td", { class: "num" }, timeOf(order.created_at)),
+    el("td", { class: "mono" }, order.lead),
+    el("td", {}, order.side),
+    el("td", { class: "num" }, order.amount),
+    el("td", {}, el("span", { class: `pill status-${order.status}` }, order.status)),
+    el("td", {}, order.tx_sig
+      ? el("a", { href: `https://solscan.io/tx/${encodeURIComponent(order.tx_sig)}`, target: "_blank", rel: "noopener noreferrer", class: "mono" }, shortAddress(order.tx_sig))
+      : "–"),
+    el("td", { class: "note", title: order.detail }, order.detail))));
 }
 
 function drawRun() {
@@ -209,6 +321,7 @@ function drawRun() {
   $("run-loop").disabled = Boolean(runner) || busy;
   $("interval").disabled = Boolean(runner);
   $("stop").disabled = !runner || runner.stopping || busy;
+  $("halt-now").disabled = state.halted || busy;
   const status = $("run-status");
   if (!runner) {
     const last = state.last_run;
@@ -247,6 +360,8 @@ function drawPositions(positions) {
   fillTable("positions", positions.map((position) => el("tr", {},
     el("td", { class: "mono" }, position.lead),
     el("td", {}, tokenCell(position)),
+    el("td", {}, el("span", { class: `pill mode-${position.mode}` }, MODE_LABEL[position.mode] || position.mode),
+      position.selling ? el("span", { class: "muted" }, " selling…") : null),
     el("td", { class: "num" }, sol(position.size_sol)),
     el("td", { class: "num" }, missing(position.entry) ? "–" : Number(position.entry).toExponential(3)),
     el("td", { class: `num ${tone(position.unrealized)}` }, signedSol(position.unrealized)),
@@ -302,6 +417,11 @@ for (const tab of document.querySelectorAll(".tab")) {
 $("run-once").addEventListener("click", () => act("/api/run", { cycles: 1, interval: intervalSeconds() }));
 $("run-loop").addEventListener("click", () => act("/api/run", { cycles: null, interval: intervalSeconds() }));
 $("stop").addEventListener("click", () => act("/api/stop", {}));
+$("halt-now").addEventListener("click", () => {
+  if (window.confirm("Halt trading now?\n\nNo new leads, quotes or buys until you clear it. Open positions are still managed and sold on their exit triggers.")) {
+    act("/api/halt", { reason: "pressed Halt trading now" });
+  }
+});
 $("clear-halt").addEventListener("click", () => {
   const reason = $("halt-note").value.trim();
   if (!reason) {

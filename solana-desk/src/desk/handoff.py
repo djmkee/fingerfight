@@ -8,6 +8,7 @@ STAGE_RESULTS: dict[str, frozenset[str]] = {
     "search": frozenset({"emit", "drop"}),
     "risk": frozenset({"pass", "fail"}),
     "sniper": frozenset({"awaiting_approval", "reject"}),
+    "approver": frozenset({"buy", "skip"}),
     "approval": frozenset({"approve", "reject"}),
     "exit": frozenset({"hold", "exit"}),
 }

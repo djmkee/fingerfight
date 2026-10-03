@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Paper desk entry point.
+"""Desk entry point: the agent process. It never loads a wallet key (signer.py does).
 
+    python main.py web --autorun 60    # the dashboard, running the loop every 60 s
     python main.py run --cycles 3      # the orchestrator loop (src/desk/orchestrator.py)
-    python main.py approve LEAD-12     # human gate: paper fill at the stored quote
+    python main.py approve LEAD-12     # paper: a book entry; dry_run/live: an order for the signer
     python main.py reject LEAD-12
 """
 

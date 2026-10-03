@@ -10,11 +10,14 @@ def raw_policy() -> dict:
     return yaml.safe_load((ROOT / "config" / "policy.yaml").read_text())
 
 
-def test_repo_policy_carries_the_spec_limits(policy):
-    assert policy.paper_mode is True
+def test_repo_policy_carries_the_chosen_limits():
+    policy = load_policy(ROOT / "config" / "policy.yaml")
+    assert policy.trading_mode == "dry_run", "ships in dry run: nothing is sent until you choose live"
+    assert (policy.auto_approve, policy.decider) == (True, "ai")
+    assert policy.max_trade_sol == 0.05
+    assert policy.daily_loss_halt_pct == 20
     assert policy.max_position_pct == 3
     assert policy.max_open_positions == 4
-    assert policy.daily_loss_halt_pct == 10
     assert policy.min_liquidity_usd == 15_000
     assert policy.max_price_impact_pct == 3
     assert policy.min_token_age_minutes == 5
@@ -23,7 +26,12 @@ def test_repo_policy_carries_the_spec_limits(policy):
 
 
 @pytest.mark.parametrize(("key", "value", "message"), [
-    ("paper_mode", False, "paper-only"),
+    ("trading_mode", "yolo", "must be one of: paper, dry_run, live"),
+    ("trading_mode", True, "must be one of"),
+    ("decider", "vibes", "must be one of: ai, rules"),
+    ("auto_approve", "yes", "true or false"),
+    ("max_trade_sol", 0, "positive"),
+    ("max_buys_per_day", 0, "whole number"),
     ("reject_mint_authority_active", False, "cannot be disabled"),
     ("reject_freeze_authority_set", False, "cannot be disabled"),
     ("max_position_pct", 0, "positive"),
@@ -36,6 +44,13 @@ def test_repo_policy_carries_the_spec_limits(policy):
 def test_unsafe_or_malformed_values_are_refused(key, value, message):
     data = raw_policy() | {key: value}
     with pytest.raises(PolicyError, match=message):
+        parse_policy(data)
+
+
+def test_the_old_paper_mode_key_points_to_its_replacement():
+    data = raw_policy()
+    data["paper_mode"] = True
+    with pytest.raises(PolicyError, match="replaced by trading_mode"):
         parse_policy(data)
 
 

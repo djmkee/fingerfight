@@ -8,27 +8,33 @@ import sys
 import threading
 import time
 
+from contextlib import contextmanager
+from dataclasses import replace
+
 import httpx
 import pytest
 
+from desk import web
 from desk.clock import iso, utcnow
 from desk.db import DeskDB
 from desk.prompts import PromptBook
 from desk.tools.fixture import TokenSpec, fixture_toolbox, load_specs
-from desk.web import DashboardApp, DashboardServer, Desk
+from desk.web import DashboardApp, DashboardServer, Desk, SignerProcess
 
 from conftest import ROOT
 
 
-@pytest.fixture
-def dashboard(tmp_path, policy):
+@contextmanager
+def serving(tmp_path, policy, live_policy=None):
     desks = {
-        "demo": Desk("demo", "Synthetic demo tokens", tmp_path / "demo.sqlite3",
-                     fixture_toolbox(load_specs(ROOT / "fixtures" / "demo_market.json"), utcnow()), "python main.py --demo"),
-        "live": Desk("live", "Live stand-in (fixtures, for tests)", tmp_path / "live.sqlite3",
-                     fixture_toolbox([TokenSpec("ELSEWHERE")], utcnow()), "python main.py"),
+        "demo": Desk(mode="demo", label="Synthetic demo tokens", db_path=tmp_path / "demo.sqlite3",
+                     tools=fixture_toolbox(load_specs(ROOT / "fixtures" / "demo_market.json"), utcnow()),
+                     cli="python main.py --demo", policy=policy),
+        "live": Desk(mode="live", label="Live stand-in (fixtures, for tests)", db_path=tmp_path / "live.sqlite3",
+                     tools=fixture_toolbox([TokenSpec("ELSEWHERE")], utcnow()), cli="python main.py",
+                     policy=live_policy or policy),
     }
-    app = DashboardApp(policy=policy, prompts=PromptBook(ROOT / "prompts"), llm=None, desks=desks,
+    app = DashboardApp(prompts=PromptBook(ROOT / "prompts"), llm=None, desks=desks,
                        initial_mode="demo", echo=lambda _line: None)
     server = DashboardServer(app, 0)
     threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True).start()
@@ -37,6 +43,30 @@ def dashboard(tmp_path, policy):
     app.shutdown()
     server.shutdown()
     server.server_close()
+
+
+@pytest.fixture
+def dashboard(tmp_path, policy):
+    with serving(tmp_path, policy) as served:
+        yield served
+
+
+@pytest.fixture
+def dry_run_dashboard(tmp_path, policy):
+    with serving(tmp_path, policy, live_policy=replace(policy, trading_mode="dry_run")) as served:
+        yield served
+
+
+def report_signer(app, *, lamports=2_000_000_000, mode="dry_run"):
+    """Write what a running signer reports about itself into the live database."""
+    db = DeskDB(app.desks["live"].db_path)
+    try:
+        for key, value in {"signer_heartbeat_at": iso(utcnow()), "signer_mode": mode,
+                           "wallet_address": "9hEd1xhfC2cGoA5XQHXtTozTn7GfQJzuyBF8zksadtuo",
+                           "wallet_lamports": lamports}.items():
+            db.set_state(key, value)
+    finally:
+        db.close()
 
 
 def call(client, app, path, body=None, **headers):
@@ -114,7 +144,7 @@ def test_buttons_run_the_same_pipeline_and_gate(dashboard):
     assert state["awaiting"] == []
     assert [position["lead"] for position in state["positions"]] == ["LEAD-1"]
     statuses = {lead["lead"]: lead["status"] for lead in state["leads"]}
-    assert (statuses["LEAD-1"], statuses["LEAD-6"]) == ("paper_filled", "rejected")
+    assert (statuses["LEAD-1"], statuses["LEAD-6"]) == ("filled", "rejected")
     assert any(event["action"] == "approve" and "@web" in event["text"] for event in state["events"])
     assert call(client, app, "/api/state?mode=live").json()["leads"] == [], "modes keep separate databases"
 
@@ -163,16 +193,88 @@ def test_cli_web_command_serves_the_dashboard(tmp_path):
         shutil.copytree(ROOT / name, root / name)
     env = {name: os.environ[name] for name in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP") if name in os.environ}
     command = [sys.executable, str(ROOT / "main.py"), "--root", str(root), "--demo",
-               "--db", str(tmp_path / "d.sqlite3"), "web", "--port", "0", "--no-browser"]
+               "--db", str(tmp_path / "d.sqlite3"), "web", "--port", "0", "--no-browser", "--no-signer"]
     with subprocess.Popen(command, env=env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True) as process:
         try:
-            first_line: list[str] = []
-            reader = threading.Thread(target=lambda: first_line.append(process.stdout.readline()), daemon=True)
+            found: list[str] = []
+
+            def read_until_address() -> None:
+                for _ in range(10):
+                    line = process.stdout.readline()
+                    if line.startswith("Dashboard: http://127.0.0.1:"):
+                        found.append(line)
+                        return
+
+            reader = threading.Thread(target=read_until_address, daemon=True)
             reader.start()
             reader.join(timeout=30)
-            assert first_line and first_line[0].startswith("Dashboard: http://127.0.0.1:"), first_line
+            assert found, "the dashboard never printed its address"
             with httpx.Client(timeout=10, trust_env=False) as client:
-                page = client.get(first_line[0].split()[1])
-            assert page.status_code == 200 and "Paper desk" in page.text
+                page = client.get(found[0].split()[1])
+            assert page.status_code == 200 and "Trading desk" in page.text
         finally:
             process.terminate()
+
+
+def test_halt_now_stops_new_buys_from_the_page(dashboard):
+    app, client = dashboard
+    halted = call(client, app, "/api/halt", {"mode": "live", "reason": "going to sleep"})
+    assert halted.status_code == 200 and "no new buys" in halted.json()["message"]
+    state = call(client, app, "/api/state?mode=live").json()
+    assert state["halted"] and "going to sleep" in state["halt_reason"]
+    assert "already halted" in call(client, app, "/api/halt", {"mode": "live", "reason": ""}).json()["message"]
+    assert client.post("/api/halt", headers={"Content-Type": "application/json"},
+                       content=json.dumps({"mode": "demo"})).status_code == 403, "the page token is still needed"
+    assert not call(client, app, "/api/state?mode=demo").json()["halted"], "halting one tab leaves the other"
+
+
+def test_paper_state_has_no_signer_or_orders(dashboard):
+    app, client = dashboard
+    state = call(client, app, "/api/state?mode=live").json()
+    assert (state["trading_mode"], state["signer"], state["orders"]) == ("paper", None, [])
+    started = call(client, app, "/api/signer/start", {"mode": "live"})
+    assert started.status_code == 409 and "signer" in started.json()["error"]
+
+
+def test_dry_run_page_shows_the_signer_and_the_orders_it_gets(dry_run_dashboard):
+    app, client = dry_run_dashboard
+    state = call(client, app, "/api/state?mode=live").json()
+    assert state["trading_mode"] == "dry_run" and state["signer"]["online"] is False
+    assert state["equity"]["total"] is None, "no wallet balance yet: no equity, so nothing is sized"
+
+    report_signer(app)
+    started = call(client, app, "/api/run", {"mode": "live", "cycles": 1, "interval": 60})
+    assert started.status_code == 200
+    wait_until(lambda: app.desks["live"].runner is None)
+    state = call(client, app, "/api/state?mode=live").json()
+    assert state["signer"]["online"] and state["signer"]["wallet_sol"] == 2.0
+    assert [lead["lead"] for lead in state["awaiting"]] == ["LEAD-1"]
+
+    approved = call(client, app, "/api/approve", {"mode": "live", "lead": "LEAD-1"})
+    assert approved.status_code == 200 and "buy order" in approved.json()["message"]
+    state = call(client, app, "/api/state?mode=live").json()
+    assert [(order["side"], order["status"]) for order in state["orders"]] == [("buy", "pending")]
+    assert state["limits"]["buys_today"] == 1 and state["positions"] == [], "booked only when the signer fills it"
+
+
+def test_signer_process_gets_no_llm_settings_and_starts_once(monkeypatch, tmp_path):
+    launched = []
+
+    class FakePopen:
+        def __init__(self, command, env):
+            launched.append((command, env))
+
+        def poll(self):
+            return None  # still running
+
+    monkeypatch.setattr(web.subprocess, "Popen", FakePopen)
+    monkeypatch.setenv("LLM_API_KEY", "llm-secret")
+    monkeypatch.setenv("SOLANA_RPC_URL", "https://rpc.example")
+    process = SignerProcess(ROOT, tmp_path / "live.sqlite3")
+    process.start()
+    process.start()
+    assert len(launched) == 1, "never two signers from one dashboard"
+    command, env = launched[0]
+    assert "LLM_API_KEY" not in env and env["SOLANA_RPC_URL"] == "https://rpc.example"
+    assert command[1] == str(ROOT / "signer.py") and command[-2:] == ["run", "--supervised"]
+    assert str(tmp_path / "live.sqlite3") in command

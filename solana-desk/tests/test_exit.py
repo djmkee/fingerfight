@@ -38,7 +38,7 @@ def test_trigger_closes_the_paper_position(make_desk, clock, change, trigger):
     assert not position.is_open
     assert position.exit_reason.startswith(trigger)
     lead = ctx.db.get_lead(lead_id)
-    assert lead.status == Status.PAPER_CLOSED
+    assert lead.status == Status.CLOSED
     assert json.loads(lead.recheck_json)["triggers"] == [position.exit_reason]  # the claim's evidence is on the row
     proceeds = position.paper_exit * int(position.token_amount) / 10**position.token_decimals
     assert proceeds > 0, "an executable exit quote existed, so the paper exit uses it"

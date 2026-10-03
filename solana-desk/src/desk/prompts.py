@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-ROLES = ("head", "search", "risk", "sniper", "exit")
+ROLES = ("head", "search", "risk", "sniper", "approver", "exit")
 MAX_WORDS = 400
 
 

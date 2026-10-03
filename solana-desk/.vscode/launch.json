@@ -2,11 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Trading desk: dashboard + auto-run every 60 s",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": [
+        "web",
+        "--autorun",
+        "60"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Dashboard: buttons in your browser",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["web"],
+      "args": [
+        "web"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -15,7 +30,46 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["--demo", "web"],
+      "args": [
+        "--demo",
+        "web"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Signer: create the trading wallet",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/signer.py",
+      "args": [
+        "init"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Signer: wallet address and balance",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/signer.py",
+      "args": [
+        "status"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Signer: withdraw everything to your main wallet",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/signer.py",
+      "args": [
+        "withdraw",
+        "--to",
+        "${input:address}",
+        "--all"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -24,7 +78,14 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["--demo", "run", "--cycles", "1", "--interval", "0"],
+      "args": [
+        "--demo",
+        "run",
+        "--cycles",
+        "1",
+        "--interval",
+        "0"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -33,7 +94,11 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["--demo", "approve", "${input:leadId}"],
+      "args": [
+        "--demo",
+        "approve",
+        "${input:leadId}"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -42,7 +107,11 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["--demo", "reject", "${input:leadId}"],
+      "args": [
+        "--demo",
+        "reject",
+        "${input:leadId}"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -51,7 +120,10 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["--demo", "status"],
+      "args": [
+        "--demo",
+        "status"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -60,7 +132,13 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["run", "--cycles", "3", "--interval", "60"],
+      "args": [
+        "run",
+        "--cycles",
+        "3",
+        "--interval",
+        "60"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -69,7 +147,9 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["run"],
+      "args": [
+        "run"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -78,7 +158,10 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["approve", "${input:leadId}"],
+      "args": [
+        "approve",
+        "${input:leadId}"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -87,7 +170,10 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["reject", "${input:leadId}"],
+      "args": [
+        "reject",
+        "${input:leadId}"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -96,7 +182,9 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["status"],
+      "args": [
+        "status"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     },
@@ -105,7 +193,9 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
-      "args": ["summary"],
+      "args": [
+        "summary"
+      ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal"
     }
@@ -115,6 +205,11 @@
       "id": "leadId",
       "type": "promptString",
       "description": "Lead ID from the awaiting-approval list, for example LEAD-12"
+    },
+    {
+      "id": "address",
+      "type": "promptString",
+      "description": "Your main wallet's address (where the SOL should go)"
     }
   ]
 }

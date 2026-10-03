@@ -42,6 +42,11 @@ class TokenSpec:
     sell_impact_pct: float = 0.9
     sell_route: bool = True
     tradable: bool = True                # False: no route either way
+    volume_h1_usd: float | None = 12_000.0
+    price_change_h1_pct: float | None = 4.0
+    price_change_h24_pct: float | None = 35.0
+    buys_h1: int | None = 140
+    sells_h1: int | None = 110
 
     @property
     def mint(self) -> str:
@@ -86,6 +91,9 @@ class FixtureMarket:
             base_mint=self.base_mint_override.get(spec.pair, spec.mint), base_symbol=spec.symbol,
             quote_mint=SOL_MINT, quote_symbol="SOL", liquidity_usd=spec.liquidity_usd,
             pair_created_at=created, price_usd=None, volume_h24_usd=None, url=None, source=self.source,
+            volume_h1_usd=spec.volume_h1_usd, price_change_h1_pct=spec.price_change_h1_pct,
+            price_change_h24_pct=spec.price_change_h24_pct, buys_h1=spec.buys_h1, sells_h1=spec.sells_h1,
+            fdv_usd=None if spec.liquidity_usd is None else spec.liquidity_usd * 8,
         )
 
     def discover(self) -> list[PairSnapshot]:

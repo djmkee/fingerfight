@@ -10,8 +10,23 @@ from .db import DeskDB, Lead, Position, Status
 if TYPE_CHECKING:
     from .context import DeskContext
 
-DISCLAIMER = ("Paper mode: nothing was signed or sent. Paper fills use quoted prices and ignore fees, "
-              "latency, and failed sends; none of this shows the strategy is profitable.")
+DISCLAIMERS = {
+    "paper": "Paper mode: nothing was signed or sent. Paper fills use quoted prices and ignore fees, "
+             "latency, and failed sends; none of this shows the strategy is profitable.",
+    "dry_run": "Dry run: any trades were built, signed and simulated on Solana but never sent. Simulated "
+               "fills are not evidence that the strategy is profitable.",
+    "live": "Live mode: trades use real SOL from the trading wallet. Past fills are not evidence "
+            "that the strategy is profitable.",
+}
+
+
+def mode_label(mode: str) -> str:
+    return {"paper": "PAPER", "dry_run": "DRY RUN", "live": "LIVE"}.get(mode, mode.upper())
+
+
+def equity_text(ctx: "DeskContext") -> str:
+    equity = ctx.equity_sol()
+    return "unknown until the signer reports the wallet balance" if equity is None else f"{equity:.4f} SOL"
 
 
 @dataclass
@@ -97,16 +112,17 @@ def format_approvals(ctx: "DeskContext") -> str:
 def format_status(ctx: "DeskContext") -> str:
     db = ctx.db
     halted = f"YES ({db.halt_reason()})" if db.is_halted() else "no"
+    mode = ctx.mode
     lines = [
-        f"mode: PAPER | halted: {halted}",
-        f"paper equity: {ctx.equity_sol():.4f} SOL (start {ctx.policy.paper_equity_sol:g}, "
-        f"realized {db.realized_total():+.4f}, unrealized {db.unrealized_total():+.4f})",
+        f"mode: {mode_label(mode)} | halted: {halted}",
+        f"equity: {equity_text(ctx)} (realized {db.realized_total(mode):+.4f}, "
+        f"unrealized {db.unrealized_total(mode):+.4f})",
         format_approvals(ctx),
-        "open paper positions:",
+        "open positions:",
     ]
     positions = db.positions(open_only=True)
-    lines += [f"  LEAD-{p.lead_id:<4} {p.mint}  size {p.size_sol:.4f} SOL  entry {p.paper_entry:.3e} SOL/token  "
-              f"unrealized {p.unrealized:+.4f} SOL  opened {p.opened_at}" for p in positions] or ["  none"]
+    lines += [f"  LEAD-{p.lead_id:<4} {p.mode:<7} {p.mint}  size {p.size_sol:.4f} SOL  entry {p.paper_entry:.3e} "
+              f"SOL/token  unrealized {p.unrealized:+.4f} SOL  opened {p.opened_at}" for p in positions] or ["  none"]
     lines.append("latest leads:")
     lines += [f"  {lead.ref:<9} {lead.status:<18} {_clip(lead.reject_reason or lead.risk_notes, 90)}"
               for lead in db.recent_leads(12)] or ["  none"]
@@ -120,10 +136,10 @@ def _row(label: str, value: object, detail: str = "") -> str:
 def format_run_summary(ctx: "DeskContext", stats: Stats, *, cycles: int, started: str, ended: str) -> str:
     groups = rejection_groups(stats.leads)
     awaiting = [lead for lead in stats.leads if lead.status == Status.AWAITING]
-    filled = [lead for lead in stats.leads if lead.status in (Status.PAPER_FILLED, Status.PAPER_CLOSED)]
+    filled = [lead for lead in stats.leads if lead.status in (Status.FILLED, Status.CLOSED)]
     rejected = stats.filtered + sum(len(group) for group in groups.values())
     lines = [
-        f"=== paper loop summary: {cycles} cycle(s), {started} -> {ended} ===",
+        f"=== {mode_label(ctx.mode).lower()} loop summary: {cycles} cycle(s), {started} -> {ended} ===",
         _row("scanned candidates", stats.scanned),
         _row("  filtered by Search", stats.filtered, _tally(stats.filter_reasons)),
     ]
@@ -143,11 +159,14 @@ def format_run_summary(ctx: "DeskContext", stats: Stats, *, cycles: int, started
     lines.append(_row("awaiting approval", len(awaiting)))
     lines += [f"      {approval_line(lead)}" for lead in awaiting]
     if filled:
-        lines.append(_row("approved (paper filled)", len(filled)))
-    lines.append(_row("open paper positions", ctx.db.count_open_positions()))
+        lines.append(_row("approved and filled", len(filled)))
+    ordered = [lead for lead in stats.leads if lead.status == Status.ORDERED]
+    if ordered:
+        lines.append(_row("approved, order pending", len(ordered)))
+    lines.append(_row("open positions", ctx.db.count_open_positions(ctx.mode)))
     lines.append(_row("halted", "yes" if ctx.db.is_halted() else "no", ctx.db.halt_reason() or ""))
     lines.append(f"TOTAL: scanned {stats.scanned} | rejected {rejected} | awaiting approval {len(awaiting)}")
-    lines.append(DISCLAIMER)
+    lines.append(DISCLAIMERS[ctx.mode])
     return "\n".join(lines)
 
 
@@ -160,20 +179,20 @@ def format_daily_summary(ctx: "DeskContext", day: date, stats: Stats) -> str:
     halted = f"yes ({ctx.db.halt_reason()})" if ctx.db.is_halted() else "no"
     lines = [
         f"# Desk daily summary, {day.isoformat()} (UTC)",
-        f"- mode: paper | halted: {halted}",
+        f"- mode: {mode_label(ctx.mode)} | halted: {halted} | equity: {equity_text(ctx)}",
         f"- scanned candidates: {stats.scanned} (filtered by Search: {stats.filtered}"
         + (f"; {_tally(stats.filter_reasons)}" if stats.filtered else "") + ")",
         f"- leads created: {len(stats.leads)}; closed without trading: "
         + (", ".join(f"{key} {len(group)}" for key, group in groups.items()) or "none"),
         f"- awaiting approval now: {', '.join(awaiting) or 'none'}",
         f"- human decisions: {stats.approvals} approve, {stats.human_rejections} reject",
-        f"- paper positions: {len(stats.opened)} opened, {len(stats.closed)} closed, "
-        f"{ctx.db.count_open_positions()} open (unrealized {ctx.db.unrealized_total():+.4f} SOL)",
-        f"- realized paper P&L from positions closed today: {realized:+.4f} SOL",
+        f"- positions: {len(stats.opened)} opened, {len(stats.closed)} closed, "
+        f"{ctx.db.count_open_positions(ctx.mode)} open (unrealized {ctx.db.unrealized_total(ctx.mode):+.4f} SOL)",
+        f"- realized P&L from positions closed today: {realized:+.4f} SOL",
     ]
     if stats.closed:
         lines.append("- exit reasons: " + "; ".join(f"LEAD-{p.lead_id} {_clip(p.exit_reason, 80)}" for p in stats.closed))
     if reasons:
         lines.append("- rejection reasons: " + _tally(reasons))
-    lines.append(DISCLAIMER)
+    lines.append(DISCLAIMERS[ctx.mode])
     return "\n".join(lines)

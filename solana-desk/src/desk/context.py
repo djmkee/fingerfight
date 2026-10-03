@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
+from . import execution
 from .clock import iso, utcnow
 from .db import DeskDB, Lead, Status
 from .guards import MintMismatch
@@ -38,22 +39,35 @@ class DeskContext:
     def log(self, role: str, action: str, lead_id: int | None = None, **payload: object) -> None:
         self.db.log_event(self.ts(), role, action, lead_id, payload)
 
-    def equity_sol(self) -> float:
-        """Paper equity: bankroll + realized P&L + open positions marked at their last exit quote."""
-        return self.policy.paper_equity_sol + self.db.realized_total() + self.db.unrealized_total()
+    @property
+    def mode(self) -> str:
+        return self.policy.trading_mode
+
+    def equity_sol(self) -> float | None:
+        """Equity for sizing and the daily loss limit; None while the wallet balance is unknown."""
+        return execution.equity_sol(self)
 
     def kill_lead(self, lead: Lead, role: str, mismatch: MintMismatch) -> None:
-        """A stage saw a different mint than the lead's: mark it dead and zero any paper position."""
+        """A stage saw a different mint than the lead's: mark it dead and get out of any position.
+
+        Pending buy orders are refused. A paper or dry-run position closes at zero in the books;
+        a live position holds real tokens, so it gets a sell order instead.
+        """
         line = Handoff(lead.lead_id, lead.mint, role, "dead", str(mismatch)).render()
         ts = self.ts()
         with self.db.tx():
             if not self.db.transition(lead.lead_id, Status.ACTIVE, Status.DEAD, ts,
                                       reject_reason=f"{role}/mint_mismatch: {mismatch}"):
                 return
+            execution.cancel_pending_orders(self.db, lead.lead_id, f"lead is dead: {mismatch}", ts)
             position = self.db.get_position(lead.lead_id)
             if position is not None and position.is_open:
-                self.db.close_position(lead.lead_id, ts=ts, paper_exit=0.0,
-                                       realized_sol=-position.size_sol, exit_reason="mint_mismatch")
+                if position.mode == "live":
+                    if position.sell_order_id is None:
+                        execution.place_sell(self, position, "mint_mismatch")
+                else:
+                    self.db.close_position(lead.lead_id, ts=ts, paper_exit=0.0,
+                                           realized_sol=-position.size_sol, exit_reason="mint_mismatch")
             self.log(role, "dead", lead.lead_id, line=line, where=mismatch.where,
                      observed_mint=str(mismatch.observed))
         self.echo(line)

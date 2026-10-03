@@ -1,4 +1,5 @@
-"""Head: assigns lead IDs, applies the halt flag, expires stale quotes, writes the daily summary.
+"""Head: assigns lead IDs, applies the halt flag, expires stale quotes and orders, writes the
+daily summary.
 
 Head never trades: it calls no quote, sizing, or approval code.
 """
@@ -6,6 +7,7 @@ Head never trades: it calls no quote, sizing, or approval code.
 import json
 from datetime import date, timedelta
 
+from .. import execution
 from ..clock import parse_iso
 from ..db import HaltedError, Status
 from ..guards import mentions_key_material
@@ -19,32 +21,42 @@ class Head(Role):
     name = "head"
 
     def start_cycle(self) -> bool:
-        """Apply halt rules and expire stale approvals. Returns whether the desk is halted."""
+        """Apply halt rules and expire stale approvals and orders. Returns whether the desk is halted."""
         halted = self.apply_halt_rules()
         self.expire_stale_approvals()
+        execution.expire_stale_orders(self.ctx)
         return halted
 
+    def _baseline_key(self) -> str:
+        return f"day_start_equity_sol:{self.ctx.mode}"
+
     def _roll_day(self) -> str:
-        """On the first look of a UTC day, record the equity the daily loss limit is measured from."""
+        """Each UTC day (and each mode) measures the daily loss limit from its first known equity."""
         today = self.ctx.now().date().isoformat()
         if self.db.get_state("day") != today:
-            equity = self.ctx.equity_sol()
             with self.db.tx():
                 self.db.set_state("day", today)
-                self.db.set_state("day_start_equity_sol", equity)
-            self.log("day_start", day=today, equity_sol=equity)
+                for mode in ("paper", "dry_run", "live"):
+                    self.db.set_state(f"day_start_equity_sol:{mode}", "")
+            self.log("day_start", day=today)
+        if not self.db.get_state(self._baseline_key()):
+            equity = self.ctx.equity_sol()
+            if equity is not None:
+                self.db.set_state(self._baseline_key(), equity)
+                self.log("day_baseline", day=today, mode=self.ctx.mode, equity_sol=equity)
         return today
 
     def apply_halt_rules(self) -> bool:
         today = self._roll_day()
         if self.db.is_halted():
             return True
-        start = float(self.db.get_state("day_start_equity_sol") or self.policy.paper_equity_sol)
+        start = self.db.get_state(self._baseline_key())
         equity = self.ctx.equity_sol()
-        loss_pct = (start - equity) / start * 100 if start > 0 else 0.0
-        if loss_pct >= self.policy.daily_loss_halt_pct:
-            self.halt(f"daily paper loss {loss_pct:.2f}% >= {self.policy.daily_loss_halt_pct:g}%",
-                      day_start_equity_sol=start, equity_sol=equity)
+        if start and equity is not None and float(start) > 0:
+            loss_pct = (float(start) - equity) / float(start) * 100
+            if loss_pct >= self.policy.daily_loss_halt_pct:
+                self.halt(f"daily {self.ctx.mode} loss {loss_pct:.2f}% >= {self.policy.daily_loss_halt_pct:g}%",
+                          day_start_equity_sol=float(start), equity_sol=equity)
         failed = int(self.db.get_state(f"failed_sends:{today}", "0") or 0)
         if failed >= self.policy.max_failed_sends:
             self.halt(f"{failed} failed sends today >= {self.policy.max_failed_sends}", failed_sends=failed)
@@ -66,16 +78,14 @@ class Head(Role):
         equity = self.ctx.equity_sol()
         with self.db.tx():
             self.db.clear_halt()
-            self.db.set_state("day_start_equity_sol", equity)
+            self.db.set_state(self._baseline_key(), "" if equity is None else equity)
             self.db.set_state(f"failed_sends:{today}", 0)
             self.log("halt_cleared", by=by, note=note, previous_reason=previous, equity_sol=equity)
 
     def record_failed_send(self, lead_id: int | None, detail: str) -> None:
-        """Count a failed broadcast. v1 never sends; the future live path reports failures here."""
-        key = f"failed_sends:{self._roll_day()}"
-        count = int(self.db.get_state(key, "0") or 0) + 1
-        self.db.set_state(key, count)
-        self.log("failed_send", lead_id, count=count, detail=detail)
+        """Count a transaction that was sent but failed (the signer reports these the same way)."""
+        self._roll_day()
+        execution.record_failed_send(self.db, self.policy, self.ctx.ts(), detail, lead_id)
         self.apply_halt_rules()
 
     def admit(self, candidates: list[Candidate]) -> list[int]:

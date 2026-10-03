@@ -4,3 +4,8 @@ data/
 __pycache__/
 .pytest_cache/
 *.egg-info/
+# Wallet keys never belong in the project. The signer keeps its key in ~/.solana-desk/ by default.
+wallet*.json
+*keypair*.json
+id.json
+*.signer.lock

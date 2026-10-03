@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="desk-token" content="{{TOKEN}}">
-  <title>Paper desk</title>
+  <title>Trading desk</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/app.css">
   <script src="/app.js" defer></script>
@@ -12,8 +12,8 @@
 <body data-initial-mode="{{MODE}}">
   <header class="top">
     <div class="brand">
-      <h1>Paper desk</h1>
-      <span class="pill paper" title="Nothing is ever signed or sent">Paper only</span>
+      <h1>Trading desk</h1>
+      <span id="mode-badge" class="pill"></span>
     </div>
     <nav class="tabs" role="tablist" aria-label="Data source">
       <button class="tab" type="button" role="tab" data-mode="live">Live <span class="dot" hidden></span></button>
@@ -24,11 +24,12 @@
   <main>
     <div id="conn" class="banner error" hidden></div>
     <p id="source" class="source"></p>
+    <section id="mode-banner" class="banner" hidden></section>
 
     <section id="halt" class="banner halt" hidden>
       <div>
         <strong>Desk halted.</strong> <span id="halt-reason"></span>
-        <p class="hint">No new leads, quotes or fills until you clear it. Open positions are still managed.</p>
+        <p class="hint">No new leads, quotes or buys until you clear it. Open positions are still managed and sold on their exit triggers.</p>
       </div>
       <div class="halt-actions">
         <input id="halt-note" type="text" maxlength="300" placeholder="Why is it safe to resume?">
@@ -36,11 +37,15 @@
       </div>
     </section>
 
-    <section class="row">
+    <section id="top-row" class="row">
       <div class="card">
-        <h2>Paper equity</h2>
+        <h2>Equity</h2>
         <div id="equity" class="big">–</div>
         <div id="equity-detail" class="kv muted"></div>
+      </div>
+      <div id="wallet-card" class="card" hidden>
+        <h2>Trading wallet</h2>
+        <div id="wallet"></div>
       </div>
       <div class="card grow">
         <h2>Run the pipeline</h2>
@@ -51,15 +56,17 @@
             every <input id="interval" type="number" min="5" max="3600" step="5" value="60" aria-label="Seconds between cycles"> s
           </span>
           <button id="stop" type="button" class="danger-outline">Stop</button>
+          <button id="halt-now" type="button" class="danger">Halt trading now</button>
         </div>
         <p id="run-status" class="muted"></p>
+        <p id="auto-status" class="muted"></p>
       </div>
     </section>
 
     <section class="card">
       <div class="section-head">
         <h2>Awaiting approval <span id="awaiting-count" class="count">0</span></h2>
-        <p class="muted">Approve opens a paper position at the stored quote. Nothing is signed or sent.</p>
+        <p id="approve-hint" class="muted"></p>
       </div>
       <div class="table-wrap">
         <table id="awaiting-table" hidden>
@@ -73,18 +80,34 @@
       <p id="awaiting-empty" class="empty">Nothing is waiting for a decision.</p>
     </section>
 
+    <section id="orders-card" class="card" hidden>
+      <div class="section-head">
+        <h2>Recent orders</h2>
+        <p id="limits" class="muted"></p>
+      </div>
+      <div class="table-wrap">
+        <table id="orders-table" hidden>
+          <thead><tr>
+            <th>Time</th><th>Lead</th><th>Side</th><th class="num">Amount</th><th>Status</th><th>Transaction</th><th>Detail</th>
+          </tr></thead>
+          <tbody id="orders-body"></tbody>
+        </table>
+      </div>
+      <p id="orders-empty" class="empty">No orders yet. Approved trades become orders for the signer.</p>
+    </section>
+
     <section class="card">
-      <h2>Open paper positions <span id="positions-count" class="count">0</span></h2>
+      <h2>Open positions <span id="positions-count" class="count">0</span></h2>
       <div class="table-wrap">
         <table id="positions-table" hidden>
           <thead><tr>
-            <th>Lead</th><th>Token</th><th class="num">Size</th><th class="num">Entry (SOL/token)</th>
+            <th>Lead</th><th>Token</th><th>Mode</th><th class="num">Size</th><th class="num">Entry (SOL/token)</th>
             <th class="num">Unrealized</th><th class="num">Opened</th><th class="num">Last check</th>
           </tr></thead>
           <tbody id="positions-body"></tbody>
         </table>
       </div>
-      <p id="positions-empty" class="empty">No open paper positions.</p>
+      <p id="positions-empty" class="empty">No open positions.</p>
     </section>
 
     <section class="card">
@@ -116,8 +139,7 @@
     <footer>
       <p id="policy" class="muted"></p>
       <p class="muted">Database: <span id="db" class="mono"></span></p>
-      <p class="muted">Paper mode: nothing is signed or sent. Paper fills use quoted prices and ignore fees,
-        latency, and failed sends; nothing here shows the strategy is profitable.</p>
+      <p id="disclaimer" class="muted"></p>
     </footer>
   </main>
 

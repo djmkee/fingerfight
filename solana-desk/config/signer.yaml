@@ -1,0 +1,19 @@
+# Settings for the signer, the only process that loads the trading wallet's key.
+# The desk (agent) process never reads this file. Trading limits live in policy.yaml,
+# which the signer re-checks before it signs anything.
+
+keypair_path: ~/.solana-desk/wallet.json   # created by `python signer.py init`; keep it outside this folder
+priority_fee_max_lamports: 200000          # most a transaction may pay for priority (0.0002 SOL)
+fee_reserve_lamports: 3000000              # most a trade may cost beyond its size: network fees plus
+                                           # token account rent, which comes back when the account closes
+order_max_age_seconds: 120                 # older orders are refused, never executed late
+poll_seconds: 1
+
+# Top-level programs a swap transaction may call. Anything else is refused unsigned.
+allowed_programs:
+  - ComputeBudget111111111111111111111111111111   # compute budget and priority fee
+  - "11111111111111111111111111111111"            # system program (wrapping SOL); quoted, or YAML reads a number
+  - TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA   # SPL Token
+  - TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb   # Token-2022
+  - ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL  # associated token accounts
+  - JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4   # Jupiter aggregator v6

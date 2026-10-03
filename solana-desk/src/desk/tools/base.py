@@ -25,11 +25,20 @@ class PairSnapshot:
     volume_h24_usd: float | None
     url: str | None
     source: str
+    # Activity numbers for the decider; names and descriptions are deliberately never kept.
+    volume_h1_usd: float | None = None
+    price_change_h1_pct: float | None = None
+    price_change_h24_pct: float | None = None
+    buys_h1: int | None = None
+    sells_h1: int | None = None
+    fdv_usd: float | None = None
 
     @classmethod
     def missing(cls, mint: str, source: str) -> "PairSnapshot":
         """A discovered token with no Solana pair where it is the base token."""
-        return cls("", "", mint, "", "", "", None, None, None, None, None, source)
+        return cls(pair_address="", dex_id="", base_mint=mint, base_symbol="", quote_mint="", quote_symbol="",
+                   liquidity_usd=None, pair_created_at=None, price_usd=None, volume_h24_usd=None, url=None,
+                   source=source)
 
     def age_minutes(self, now: datetime) -> float | None:
         if self.pair_created_at is None:

@@ -1,4 +1,4 @@
-"""The cycle: halt check -> Search -> Risk -> Sniper -> approvals list -> Exit -> events."""
+"""The cycle: halt check -> Search -> Risk -> Sniper -> Approver -> approvals list -> Exit -> events."""
 
 import time
 from collections.abc import Callable
@@ -6,7 +6,7 @@ from collections.abc import Callable
 from .context import DeskContext
 from .db import Status
 from .reporting import collect_stats, format_approvals, format_run_summary
-from .roles import Exit, Head, Risk, Search, Sniper
+from .roles import Approver, Exit, Head, Risk, Search, Sniper
 
 
 def _sleep(seconds: float) -> bool:
@@ -21,6 +21,7 @@ class Orchestrator:
         self.search = Search(ctx)
         self.risk = Risk(ctx)
         self.sniper = Sniper(ctx)
+        self.approver = Approver(ctx)
         self.exit = Exit(ctx)
 
     def run_cycle(self) -> None:
@@ -41,7 +42,8 @@ class Orchestrator:
             self.search.review(new_leads)
         self.risk.run()                 # 3. Risk scores unscored leads
         self.sniper.run()               # 4. Sniper quotes Risk=pass leads only
-        ctx.echo(format_approvals(ctx))  # 5. awaiting_approval list for the human
+        self.approver.run()             #    with auto_approve on, the decider buys within the limits
+        ctx.echo(format_approvals(ctx))  # 5. what is still awaiting a human decision
         self.exit.run()                 # 6. Exit re-checks open paper positions
         ctx.log("orchestrator", "cycle_end", cycle=cycle, new_leads=len(new_leads),  # 7. events
                 awaiting=ctx.db.count_leads(Status.AWAITING), open_positions=ctx.db.count_open_positions(),

@@ -55,7 +55,8 @@ def clock() -> FakeClock:
 
 @pytest.fixture
 def policy() -> Policy:
-    return load_policy(ROOT / "config" / "policy.yaml")
+    """The repo policy in paper mode with manual approval, which most tests exercise."""
+    return replace(load_policy(ROOT / "config" / "policy.yaml"), trading_mode="paper", auto_approve=False)
 
 
 @pytest.fixture
@@ -79,6 +80,15 @@ def make_desk(tmp_path: Path, policy: Policy, clock: FakeClock) -> Iterator[Call
     yield make
     for db in opened:
         db.close()
+
+
+def signer_online(ctx: DeskContext, *, mode: str | None = None, lamports: int = 2_000_000_000,
+                  wallet: str = "9hEd1xhfC2cGoA5XQHXtTozTn7GfQJzuyBF8zksadtuo", ago_seconds: float = 0) -> None:
+    """Write what a running signer reports about itself."""
+    ctx.db.set_state("signer_heartbeat_at", (ctx.now() - timedelta(seconds=ago_seconds)).isoformat(timespec="seconds"))
+    ctx.db.set_state("signer_mode", mode or ctx.mode)
+    ctx.db.set_state("wallet_address", wallet)
+    ctx.db.set_state("wallet_lamports", lamports)
 
 
 def lead_for(ctx: DeskContext, spec: TokenSpec) -> Lead:
