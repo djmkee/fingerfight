@@ -71,7 +71,7 @@ def rejection_groups(leads: list[Lead]) -> dict[str, list[Lead]]:
 
 def _clip(text: str | None, width: int = 110) -> str:
     text = " ".join((text or "").split())
-    return text if len(text) <= width else text[:width - 1] + "…"
+    return text if len(text) <= width else text[:width - 3] + "..."
 
 
 def _tally(counter: Counter[str]) -> str:

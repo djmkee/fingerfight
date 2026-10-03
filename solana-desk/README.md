@@ -37,6 +37,7 @@ v1 does not copy-trade wallets, launch tokens, use leverage, auto-sign, or broad
 ```
 solana-desk/
 ├── main.py                  entry point: run the loop, approve/reject, inspect
+├── .vscode/                 launch configurations, test settings, recommended extension
 ├── config/policy.yaml       risk policy, loaded at startup and enforced in code
 ├── prompts/                 global_ban.md + one system prompt per role (each < 400 words)
 ├── fixtures/demo_market.json  synthetic tokens for --demo and the tests
@@ -52,15 +53,38 @@ solana-desk/
 
 ## Setup
 
-Requires Python 3.12.
+Requires Python 3.12 or newer (tested on 3.12, 3.13, and 3.14).
+
+macOS or Linux:
 
 ```bash
 cd solana-desk
-python3.12 -m venv .venv
-. .venv/bin/activate
+python3.12 -m venv .venv       # or python3.13 / python3.14
+source .venv/bin/activate
 pip install -e ".[dev]"        # httpx, PyYAML, pytest
 cp .env.example .env           # optional: every value has a default or is optional
 ```
+
+Windows (PowerShell):
+
+```powershell
+cd solana-desk
+py -3.12 -m venv .venv         # or py -3.13 / py -3.14
+.venv\Scripts\Activate.ps1     # if blocked: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -e ".[dev]"
+copy .env.example .env
+```
+
+### VS Code
+
+1. **File > Open Folder** and choose `solana-desk`, the folder that contains `main.py`. Install
+   the recommended Python extension when VS Code offers it.
+2. Create the environment with the commands above in VS Code's terminal, or run
+   **Python: Create Environment** from the Command Palette (Venv; tick the `dev` extras if it
+   asks). Then choose `.venv` with **Python: Select Interpreter**.
+3. **Run and Debug** (Ctrl+Shift+D) lists ready-made launch configurations: the offline demo,
+   the live loop, approve and reject (they ask for the lead ID), status, and the daily summary.
+4. The **Testing** panel finds and runs the pytest suite.
 
 ### Environment variables
 

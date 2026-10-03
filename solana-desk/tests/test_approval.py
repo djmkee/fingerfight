@@ -1,9 +1,11 @@
 """Required: a paper approval needs no key. Plus the rest of the human gate."""
 
 import os
+import shutil
 import sqlite3
 import subprocess
 import sys
+from contextlib import closing
 from dataclasses import replace
 
 import pytest
@@ -49,31 +51,39 @@ def test_paper_approve_needs_no_key_and_fills_at_the_quoted_price(make_desk):
     assert position.paper_entry == pytest.approx(expected_price)
 
 
+def query_one(db, sql, *params):
+    with closing(sqlite3.connect(db)) as conn:
+        return conn.execute(sql, params).fetchone()[0]
+
+
 def test_cli_paper_approve_runs_in_a_clean_environment_without_the_signer(tmp_path):
-    """End to end through main.py, with no wallet, LLM, or RPC settings in the environment."""
-    env = {"PATH": os.environ.get("PATH", ""), "HOME": str(tmp_path)}
+    """End to end through main.py, with no wallet, LLM, or RPC settings anywhere."""
+    # A private project root (config, prompts, fixtures) so no local .env is ever read.
+    root = tmp_path / "root"
+    for name in ("config", "prompts", "fixtures"):
+        shutil.copytree(ROOT / name, root / name)
+    # Only what Python needs to start (Windows needs SYSTEMROOT); nothing the desk reads.
+    env = {name: os.environ[name] for name in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP") if name in os.environ}
     db = tmp_path / "demo.sqlite3"
-    run = subprocess.run([sys.executable, str(ROOT / "main.py"), "--demo", "--db", str(db),
+    run = subprocess.run([sys.executable, str(ROOT / "main.py"), "--root", str(root), "--demo", "--db", str(db),
                           "run", "--cycles", "1", "--interval", "0"],
                          env=env, capture_output=True, text=True, timeout=120)
     assert run.returncode == 0, run.stderr
-    lead_id = sqlite3.connect(db).execute(
-        "SELECT lead_id FROM leads WHERE status = 'awaiting_approval' ORDER BY lead_id LIMIT 1").fetchone()[0]
+    lead_id = query_one(db, "SELECT lead_id FROM leads WHERE status = 'awaiting_approval' ORDER BY lead_id LIMIT 1")
 
     probe = (
         "import sys\n"
         f"sys.path.insert(0, {str(ROOT / 'src')!r})\n"
         "from pathlib import Path\n"
         "from desk.cli import main\n"
-        f"code = main(['--demo', '--db', {str(db)!r}, 'approve', 'LEAD-{lead_id}'], default_root=Path({str(ROOT)!r}))\n"
+        f"code = main(['--demo', '--db', {str(db)!r}, 'approve', 'LEAD-{lead_id}'], default_root=Path({str(root)!r}))\n"
         "assert code == 0, code\n"
         "loaded = sorted(m for m in sys.modules if m.split('.')[0] in ('signer', 'solders'))\n"
         "assert not loaded, loaded\n"
     )
     result = subprocess.run([sys.executable, "-c", probe], env=env, capture_output=True, text=True, timeout=120)
     assert result.returncode == 0, result.stderr
-    status = sqlite3.connect(db).execute("SELECT status FROM leads WHERE lead_id = ?", (lead_id,)).fetchone()[0]
-    assert status == Status.PAPER_FILLED
+    assert query_one(db, "SELECT status FROM leads WHERE lead_id = ?", lead_id) == Status.PAPER_FILLED
 
 
 def test_reject_closes_the_lead(make_desk):

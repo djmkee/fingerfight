@@ -6,7 +6,7 @@ import re
 import pytest
 
 from desk.db import Status
-from desk.guards import KeyMaterialError, mentions_key_material
+from desk.guards import KeyMaterialError, assert_no_wallet_secrets, mentions_key_material
 from desk.orchestrator import Orchestrator
 from desk.prompts import ROLES, PromptBook
 from desk.settings import load_settings, read_dotenv
@@ -40,7 +40,7 @@ def test_env_example_has_only_empty_placeholders_and_no_wallet_names():
     values = read_dotenv(ROOT / ".env.example")
     assert values, ".env.example should list the settings"
     assert all(value == "" for value in values.values()), values
-    load_settings(ROOT, environ={})  # the example names themselves pass the wallet-secret guard
+    assert_no_wallet_secrets(values, ".env.example")  # the names themselves pass the guard
     assert {"SOLANA_RPC_URL", "LLM_API_KEY"} <= set(values)
 
 

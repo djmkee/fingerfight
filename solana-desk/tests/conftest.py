@@ -1,5 +1,5 @@
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -59,14 +59,16 @@ def policy() -> Policy:
 
 
 @pytest.fixture
-def make_desk(tmp_path: Path, policy: Policy, clock: FakeClock) -> Callable[..., DeskContext]:
+def make_desk(tmp_path: Path, policy: Policy, clock: FakeClock) -> Iterator[Callable[..., DeskContext]]:
     """desk = make_desk(tokens, llm=None, **policy_overrides): fresh DB, fixture tools, fake clock."""
     prompts = PromptBook(ROOT / "prompts")
+    opened: list[DeskDB] = []
 
     def make(tokens: list[TokenSpec], llm: Any = None, **overrides: Any) -> DeskContext:
+        opened.append(DeskDB(tmp_path / "desk.sqlite3"))
         return DeskContext(
             policy=replace(policy, **overrides),
-            db=DeskDB(tmp_path / "desk.sqlite3"),
+            db=opened[-1],
             prompts=prompts,
             tools=fixture_toolbox(tokens, clock()),
             llm=llm,
@@ -74,7 +76,9 @@ def make_desk(tmp_path: Path, policy: Policy, clock: FakeClock) -> Callable[...,
             echo=lambda _line: None,
         )
 
-    return make
+    yield make
+    for db in opened:
+        db.close()
 
 
 def lead_for(ctx: DeskContext, spec: TokenSpec) -> Lead:

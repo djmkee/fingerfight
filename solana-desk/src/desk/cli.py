@@ -3,6 +3,8 @@
 import argparse
 import getpass
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
@@ -44,6 +46,15 @@ def build_context(args: argparse.Namespace, *, with_tools: bool) -> DeskContext:
     )
 
 
+@contextmanager
+def open_desk(args: argparse.Namespace, *, with_tools: bool) -> Iterator[DeskContext]:
+    ctx = build_context(args, with_tools=with_tools)
+    try:
+        yield ctx
+    finally:
+        ctx.db.close()
+
+
 def _operator() -> str:
     try:
         return getpass.getuser()
@@ -52,55 +63,59 @@ def _operator() -> str:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    ctx = build_context(args, with_tools=True)
-    data = ("SYNTHETIC fixtures (fixtures/demo_market.json), not market data" if args.demo
-            else "live DexScreener, Jupiter quotes, Solana RPC")
-    llm = f"on ({ctx.llm.model})" if isinstance(ctx.llm, LLMClient) else "off (coded rules only)"
-    print(f"paper desk | mode PAPER | data: {data} | LLM: {llm} | db: {ctx.db.path}")
-    summary = Orchestrator(ctx).loop(args.cycles, args.interval)
+    with open_desk(args, with_tools=True) as ctx:
+        data = ("SYNTHETIC fixtures (fixtures/demo_market.json), not market data" if args.demo
+                else "live DexScreener, Jupiter quotes, Solana RPC")
+        llm = f"on ({ctx.llm.model})" if isinstance(ctx.llm, LLMClient) else "off (coded rules only)"
+        print(f"paper desk | mode PAPER | data: {data} | LLM: {llm} | db: {ctx.db.path}")
+        summary = Orchestrator(ctx).loop(args.cycles, args.interval)
     print()
     print(summary)
     return 0
 
 
 def cmd_approve(args: argparse.Namespace) -> int:
-    approve(build_context(args, with_tools=False), args.lead, by=_operator())
+    with open_desk(args, with_tools=False) as ctx:
+        approve(ctx, args.lead, by=_operator())
     return 0
 
 
 def cmd_reject(args: argparse.Namespace) -> int:
-    reject(build_context(args, with_tools=False), args.lead, by=_operator())
+    with open_desk(args, with_tools=False) as ctx:
+        reject(ctx, args.lead, by=_operator())
     return 0
 
 
 def cmd_status(args: argparse.Namespace) -> int:
-    print(format_status(build_context(args, with_tools=False)))
+    with open_desk(args, with_tools=False) as ctx:
+        print(format_status(ctx))
     return 0
 
 
 def cmd_summary(args: argparse.Namespace) -> int:
     day = date.fromisoformat(args.date) if args.date else utcnow().date()
-    print(Head(build_context(args, with_tools=False)).daily_summary(day))
+    with open_desk(args, with_tools=False) as ctx:
+        print(Head(ctx).daily_summary(day))
     return 0
 
 
 def cmd_clear_halt(args: argparse.Namespace) -> int:
-    ctx = build_context(args, with_tools=False)
-    if not ctx.db.is_halted():
-        print("the desk is not halted")
-        return 0
-    reason = ctx.db.halt_reason()
-    Head(ctx).clear_halt(by=_operator(), note=args.reason)
+    with open_desk(args, with_tools=False) as ctx:
+        if not ctx.db.is_halted():
+            print("the desk is not halted")
+            return 0
+        reason = ctx.db.halt_reason()
+        Head(ctx).clear_halt(by=_operator(), note=args.reason)
     print(f"halt cleared (was: {reason}); the daily loss limit now counts from current paper equity")
     return 0
 
 
 def cmd_events(args: argparse.Namespace) -> int:
-    ctx = build_context(args, with_tools=False)
     lead_id = parse_lead_ref(args.lead) if args.lead else None
-    for row in ctx.db.events(lead_id=lead_id, limit=args.limit):
-        lead = f"LEAD-{row['lead_id']}" if row["lead_id"] is not None else "-"
-        print(f"{row['timestamp']}  {lead:<9} {row['role']:<12} {row['action']:<18} {row['payload']}")
+    with open_desk(args, with_tools=False) as ctx:
+        for row in ctx.db.events(lead_id=lead_id, limit=args.limit):
+            lead = f"LEAD-{row['lead_id']}" if row["lead_id"] is not None else "-"
+            print(f"{row['timestamp']}  {lead:<9} {row['role']:<12} {row['action']:<18} {row['payload']}")
     return 0
 
 
